@@ -1,0 +1,11 @@
+---
+- name: Ensure config directory is present
+  tags:
+    - bazarr
+    - config
+  file:    
+    path: '{{ config_directory }}/bazarr'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'

@@ -1,0 +1,6 @@
+---
+watchtower_notifications: 'slack'
+watchtower_notification_slack_channel: '#watchtower'
+watchtower_config_directory: '{{ config_directory }}/watchtower'
+watchtower_config_filepath: '{{ watchtower_config_directory }}/config.json'
+watchtower_debug: 'false'

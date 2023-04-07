@@ -1,0 +1,17 @@
+- name: Synology Media Server
+  hosts: synology
+  become: true
+  vars_files:
+    - vars/main.yml
+    - vars/vault.yml
+  roles:
+    - transmission-openvpn
+    - plex
+    - sonarr
+    - radarr
+    - prowlarr
+    - bazarr
+    - overseerr
+    - watchtower
+
+ 

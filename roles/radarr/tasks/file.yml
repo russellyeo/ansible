@@ -1,0 +1,30 @@
+# Set up file structure
+#
+# home
+# └── config
+#     └── radarr
+# servarr
+# └── media
+#     └── films
+---
+- name: Ensure config directory is present
+  tags:
+    - radarr
+    - config
+  file:    
+    path: '{{ config_directory }}/radarr'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+
+- name: Ensure films directory is present
+  tags:
+    - radarr
+    - config
+  file:    
+    path: '{{ data_directory }}/media/films'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'

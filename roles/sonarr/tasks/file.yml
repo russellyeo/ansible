@@ -1,0 +1,32 @@
+# Set up file structure
+#
+# home
+# └── config
+#     └── sonarr
+# servarr
+# └── torrents
+#     ├── completed
+#     ├── incomplete
+#     └── watch
+---
+- name: Ensure config directory is present
+  tags:
+    - sonarr
+    - config
+  file:    
+    path: '{{ config_directory }}/sonarr'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+
+- name: Ensure tv directory is present
+  tags:
+    - sonarr
+    - config
+  file:    
+    path: '{{ data_directory }}/media/tv'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'

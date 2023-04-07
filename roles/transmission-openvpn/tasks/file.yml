@@ -1,0 +1,32 @@
+# Set up file structure
+#
+# home
+# └── config
+#     └── transmission-openvpn
+# servarr
+# └── torrents
+#     ├── completed
+#     ├── incomplete
+#     └── watch
+---
+- name: Ensure config directory is present
+  tags: config
+  file:    
+    path: '{{ config_directory }}/transmission-openvpn'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+
+- name: Ensure torrents directories are present
+  tags: config
+  file:    
+    path: '{{ data_directory }}/torrents/{{ item }}'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+  loop:
+    - 'completed'
+    - 'incomplete'
+    - 'watch'

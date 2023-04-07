@@ -1,0 +1,26 @@
+# Plex Media Server
+# https://docs.linuxserver.io/images/docker-plex
+---
+- name: Start container
+  tags: container
+  docker_container:
+    name: plex
+    image: lscr.io/linuxserver/plex:latest
+    state: started
+    restart: '{{ docker_restart }}'
+    recreate: '{{ docker_recreate }}'
+    restart_policy: unless-stopped
+    network_mode: host
+    ports:
+      - '{{ host_port }}:32400'
+    volumes:
+      - '{{ config_directory }}/plex:/config'
+      - '{{ data_directory }}/media:/media'
+    dns_servers:
+      - '{{ dns_primary }}'
+      - '{{ dns_secondary }}'
+    env:
+      PLEX_UID: '{{ servarr_uid }}'
+      PLEX_GID: '{{ servarr_gid }}'
+      VERSION: 'docker'
+      PLEX_CLAIM: '{{ plex_claim }}'

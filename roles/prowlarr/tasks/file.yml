@@ -1,0 +1,11 @@
+---
+- name: Ensure config directory is present
+  tags:
+    - prowlarr
+    - config
+  file:    
+    path: '{{ config_directory }}/prowlarr'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'

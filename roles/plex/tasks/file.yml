@@ -1,0 +1,30 @@
+# Set up file structure
+#
+# home
+# └── config
+#     └── plex
+# servarr
+# └── media
+#     ├── films
+#     └── tv
+---
+- name: Ensure config directory is present
+  tags: config
+  file:    
+    path: '{{ config_directory }}/plex'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+
+- name: Ensure media directories are present
+  tags: config
+  file:    
+    path: '{{ data_directory }}/media/{{ item }}'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+  loop:
+    - 'films'
+    - 'tv'

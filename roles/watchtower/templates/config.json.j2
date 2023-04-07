@@ -1,0 +1,10 @@
+{
+    "auths": {
+        "docker.pkg.github.com": {
+            "auth": "{{ (github_username + ':' + github_personal_access_token) | b64encode }}"
+        },
+        "registry.hub.docker.com": {
+            "auth": "{{ (docker_username + ':' + docker_password) | b64encode }}"
+        }
+    }
+}

@@ -1,0 +1,50 @@
+# Transmission OpenVPN
+# Docker Hub: https://hub.docker.com/r/haugene/transmission-openvpn/
+# Docs: https://haugene.github.io/docker-transmission-openvpn/
+# Configuration options: https://github.com/transmission/transmission/blob/main/docs/Editing-Configuration-Files.md#options
+---
+- name: Start container
+  tags: container
+  docker_container:
+    name: transmission-openvpn
+    image: haugene/transmission-openvpn
+    state: started
+    restart_policy: unless-stopped
+    restart: '{{ docker_restart }}'
+    recreate: '{{ docker_recreate }}'
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '{{ config_directory }}/transmission-openvpn:/config'
+      - '{{ data_directory }}/torrents:/data'
+    ports:
+      - '{{ host_port }}:9091'
+    dns_servers:
+      - '{{ dns_primary }}'
+      - '{{ dns_secondary }}'
+    capabilities:
+      - NET_ADMIN
+    env:
+      PUID: '{{ servarr_uid }}'
+      PGID: '{{ servarr_gid }}'
+      TZ: '{{ timezone }}'
+      OPENVPN_PROVIDER:  '{{ openvpn_provider }}'
+      OPENVPN_CONFIG: '{{ openvpn_config }}'
+      OPENVPN_USERNAME: '{{ openvpn_username }}'
+      OPENVPN_PASSWORD: '{{ openvpn_password }}'
+      LOCAL_NETWORK: '{{ local_network }}'
+      WEBPROXY_ENABLED: 'false'
+      TRANSMISSION_RPC_HOST_WHITELIST: '{{ rpc_host_whitelist }}'
+      TRANSMISSION_RATIO_LIMIT: '{{ upload_ratio_limit }}'
+      TRANSMISSION_RATIO_LIMIT_ENABLED: 'true'
+      TRANSMISSION_SPEED_LIMIT_UP_ENABLED: '{{ enable_speed_limits }}'
+      TRANSMISSION_SPEED_LIMIT_DOWN_ENABLED: '{{ enable_speed_limits }}'
+      TRANSMISSION_SPEED_LIMIT_UP: '{{ speed_limit_up }}'
+      TRANSMISSION_SPEED_LIMIT_DOWN: '{{ speed_limit_down }}'
+      TRANSMISSION_ALT_SPEED_UP: '{{ alt_speed_up }}'
+      TRANSMISSION_ALT_SPEED_DOWN: '{{ alt_speed_down }}'
+      TRANSMISSION_ALT_SPEED_TIME_ENABLED: '{{ alt_speed_time_enabled }}'
+      TRANSMISSION_ALT_SPEED_TIME_BEGIN: '{{ alt_speed_time_begin }}'
+      TRANSMISSION_ALT_SPEED_TIME_END: '{{ alt_speed_time_end }}'
+      TRANSMISSION_UPLOAD_SLOTS_PER_TORRENT: '{{ upload_slots_per_torrent }}'
+      TRANSMISSION_SCRIPT_TORRENT_DONE_ENABLED: '{{ enable_unrar_script }}'
+      TRANSMISSION_SCRIPT_TORRENT_DONE_FILENAME: '/config/unrar_completed.sh'

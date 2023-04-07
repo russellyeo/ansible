@@ -1,0 +1,25 @@
+# Synology group specific variables
+
+# User / Group
+servarr_uid: '1027'
+servarr_gid: '65538'
+
+# Timezone
+timezone: 'Europe/London'
+
+# Filepaths
+config_directory: '/volume2/homes/servarr/config'
+data_directory: '/volume1/servarr'
+
+# File permissions
+directory_mode: '775'
+file_mode: '664'
+
+# Docker
+docker_restart: 'no'
+docker_restart_policy: 'unless-stopped'
+docker_recreate: 'no'
+
+# DNS
+dns_primary: '1.1.1.1'
+dns_secondary: '1.0.0.1'

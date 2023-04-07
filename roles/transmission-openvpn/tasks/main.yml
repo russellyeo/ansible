@@ -1,0 +1,4 @@
+---
+- import_tasks: file.yml
+- import_tasks: container.yml
+- import_tasks: unrar_completed.yml

@@ -1,0 +1,9 @@
+# Vault
+ansible_become_pass: "{{ vault_ansible_password }}"
+openvpn_username: '{{ vault_openvpn_username }}'
+openvpn_password: '{{ vault_openvpn_password }}'
+github_username: '{{ vault_github_username }}'
+github_personal_access_token: '{{ vault_github_personal_access_token }}'
+docker_username: '{{ vault_docker_username }}'
+docker_password: '{{ vault_docker_password }}'
+watchtower_notification_slack_hook_url: '{{ vault_watchtower_notification_slack_hook_url }}'

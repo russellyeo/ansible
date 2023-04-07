@@ -1,0 +1,8 @@
+---
+- name: Create unrar script
+  template:
+    src: unrar_completed.sh.j2
+    dest: '{{ config_directory }}/transmission-openvpn/unrar_completed.sh'
+    owner: servarr
+    group: servarr
+    mode: '550'
