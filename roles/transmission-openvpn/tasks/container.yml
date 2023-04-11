@@ -4,9 +4,11 @@
 # Configuration options: https://github.com/transmission/transmission/blob/main/docs/Editing-Configuration-Files.md#options
 ---
 - name: Start container
-  tags: container
+  tags: 
+  - container
+  - transmission
   docker_container:
-    name: transmission-openvpn
+    name: '{{ item.name }}'
     image: haugene/transmission-openvpn
     state: started
     restart_policy: unless-stopped
@@ -14,10 +16,10 @@
     recreate: '{{ docker_recreate }}'
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
-      - '{{ config_directory }}/transmission-openvpn:/config'
-      - '{{ data_directory }}/torrents:/data'
+      - '{{ item.config_filepath }}:/config'
+      - '{{ item.data_filepath }}:/data'
     ports:
-      - '{{ host_port }}:9091'
+      - '{{ item.port }}:9091'
     dns_servers:
       - '{{ dns_primary }}'
       - '{{ dns_secondary }}'
@@ -48,3 +50,22 @@
       TRANSMISSION_UPLOAD_SLOTS_PER_TORRENT: '{{ upload_slots_per_torrent }}'
       TRANSMISSION_SCRIPT_TORRENT_DONE_ENABLED: '{{ enable_unrar_script }}'
       TRANSMISSION_SCRIPT_TORRENT_DONE_FILENAME: '/config/unrar_completed.sh'
+  loop:
+    - { 
+        name: 'transmission-films', 
+        port: '{{ transmission_films_port }}',
+        config_filepath: '{{ config_directory }}/transmission-films',
+        data_filepath: '{{ data_directory }}/torrents/films'
+      }
+    - { 
+        name: 'transmission-tv', 
+        port: '{{ transmission_tv_port }}',
+        config_filepath: '{{ config_directory }}/transmission-tv',
+        data_filepath: '{{ data_directory }}/torrents/tv'
+      }
+    - { 
+        name: 'transmission-other', 
+        port: '{{ transmission_other_port }}',
+        config_filepath: '{{ config_directory }}/transmission-other',
+        data_filepath: '{{ data_directory }}/torrents/other'
+      }

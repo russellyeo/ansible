@@ -2,21 +2,36 @@
 #
 # home
 # └── config
-#     └── transmission-openvpn
+#     ├── transmission-films
+#     ├── transmission-tv
+#     └── transmission-other
 # servarr
 # └── torrents
-#     ├── completed
-#     ├── incomplete
-#     └── watch
+#     ├── films
+#     │   ├── completed
+#     │   ├── incomplete
+#     │   └── watch
+#     ├── tv
+#     │   ├── completed
+#     │   ├── incomplete
+#     │   └── watch
+#     └── other
+#         ├── completed
+#         ├── incomplete
+#         └── watch
 ---
-- name: Ensure config directory is present
+- name: Ensure config directories are present
   tags: config
   file:    
-    path: '{{ config_directory }}/transmission-openvpn'
+    path: '{{ config_directory }}/{{ item }}'
     state: directory
     owner: servarr
     group: servarr
     mode: '{{ directory_mode }}'
+  loop: 
+    - 'transmission-films'
+    - 'transmission-tv'
+    - 'transmission-other'
 
 - name: Ensure torrents directories are present
   tags: config
@@ -27,6 +42,12 @@
     group: servarr
     mode: '{{ directory_mode }}'
   loop:
-    - 'completed'
-    - 'incomplete'
-    - 'watch'
+    - 'films/completed'
+    - 'films/incomplete'
+    - 'films/watch'
+    - 'tv/completed'
+    - 'tv/incomplete'
+    - 'tv/watch'
+    - 'other/completed'
+    - 'other/incomplete'
+    - 'other/watch'

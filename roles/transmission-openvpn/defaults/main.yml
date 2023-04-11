@@ -1,5 +1,8 @@
 ---
-host_port: '9091'
+# Networking
+transmission_other_port: '9091'
+transmission_films_port: '9191'
+transmission_tv_port: '9291'
 local_network: '192.168.1.0/24'
 rpc_host_whitelist: '127.0.0.1,192.168.*.*'
 
