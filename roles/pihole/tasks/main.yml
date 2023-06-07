@@ -4,7 +4,7 @@
   lineinfile:
     dest: /etc/systemd/resolved.conf
     state: present
-    regexp: '^#?DNSStubListener=yes$' 
+    regexp: "^#?DNSStubListener=yes$"
     line: "DNSStubListener=no"
   register: dns_stub_resolver
 
@@ -28,40 +28,43 @@
     name: pihole
     image: pihole/pihole:latest
     state: stopped
-    restart_policy: always
+    # state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
     volumes:
-      - './etc-pihole/:/etc/pihole/'
-      - './etc-dnsmasq.d/:/etc/dnsmasq.d/'
+      - "./etc-pihole/:/etc/pihole/"
+      - "./etc-dnsmasq.d/:/etc/dnsmasq.d/"
     ports:
-      - '53:53/tcp'
-      - '53:53/udp'
-      - '67:67/udp'
-      - '80:80/tcp'
-      - '443:443/tcp'
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "80:80/tcp"
+      - "443:443/tcp"
     capabilities:
       - NET_ADMIN
     dns_servers:
-      - '{{ dns_primary }}'
-      - '{{ dns_secondary }}'
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
     env:
-      TZ: '{{ timezone }}'
-      WEBPASSWORD: '{{ pihole_password }}'
+      TZ: "{{ timezone }}"
+      WEBPASSWORD: "{{ pihole_password }}"
 
 - name: UFW - Allow TCP ports
   ufw:
     rule: allow
-    port: '{{ item }}'
+    port: "{{ item }}"
     proto: tcp
   loop:
-    - '53'
-    - '80'
-    - '443'
+    - "53"
+    - "80"
+    - "443"
 
 - name: UFW - Allow UDP ports
   ufw:
     rule: allow
-    port: '{{ item }}'
+    port: "{{ item }}"
     proto: udp
   loop:
-    - '53'
-    - '67'
+    - "53"
+    - "67"

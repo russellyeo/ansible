@@ -3,25 +3,25 @@
 # Docs: https://docs.linuxserver.io/images/docker-bazarr
 ---
 - name: Start container
-  tags: 
+  tags:
     - bazarr
     - container
   docker_container:
     name: bazarr
     image: ghcr.io/linuxserver/bazarr
-    state: started
-    restart_policy: unless-stopped
-    restart: '{{ docker_restart }}'
-    recreate: '{{ docker_recreate }}'
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
     volumes:
-      - '{{ config_directory }}/bazarr:/config'
-      - '{{ data_directory }}:/data'
+      - "{{ config_directory }}/bazarr:/config"
+      - "{{ data_directory }}:/data"
     ports:
-      - '{{ host_port }}:6767'
+      - "{{ host_port }}:6767"
     dns_servers:
-      - '{{ dns_primary }}'
-      - '{{ dns_secondary }}'
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
     env:
-      PUID: '{{ servarr_uid }}'
-      PGID: '{{ servarr_gid }}'
-      TZ: '{{ timezone }}'
+      PUID: "{{ servarr_uid }}"
+      PGID: "{{ servarr_gid }}"
+      TZ: "{{ timezone }}"
