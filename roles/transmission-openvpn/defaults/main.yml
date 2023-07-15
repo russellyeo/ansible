@@ -1,27 +1,27 @@
 ---
 # Networking
-transmission_other_port: '9091'
-transmission_films_port: '9191'
-transmission_tv_port: '9291'
-local_network: '192.168.1.0/24'
-rpc_host_whitelist: '127.0.0.1,192.168.*.*'
+transmission_films_port: "9191"
+transmission_tv_port: "9291"
+transmission_other_port: "9391"
+local_network: "192.168.1.0/24"
+rpc_host_whitelist: "127.0.0.1,192.168.*.*"
 
 # OpenVPN configuration
-openvpn_provider: 'PIA'
-openvpn_config: 'uk_london'
+openvpn_provider: "PIA"
+openvpn_config: "uk_london"
 
 # Enable unrar script
-enable_unrar_script: 'true'
+enable_unrar_script: "true"
 
 # Transmission configuration
-enable_speed_limits: 'true'
-speed_limit_up: '1000' # kbps
-speed_limit_down: '2500' # kbps
-upload_ratio_limit: '1'
-upload_slots_per_torrent: '14'
-alt_speed_up: '250' # kbps
-alt_speed_down: '500' # kbps
-alt_speed_time_enabled: 'true' # kbps
-alt_speed_time_begin: '540' # minutes (09:00)
-alt_speed_time_end: '1440' # minutes (00:00)
-alt_speed_time_day: '1111111' # all days
+enable_speed_limits: "true"
+speed_limit_up: "1000" # kbps
+speed_limit_down: "2500" # kbps
+upload_ratio_limit: "1"
+upload_slots_per_torrent: "14"
+alt_speed_up: "250" # kbps
+alt_speed_down: "500" # kbps
+alt_speed_time_enabled: "true" # kbps
+alt_speed_time_begin: "540" # minutes (09:00)
+alt_speed_time_end: "1440" # minutes (00:00)
+alt_speed_time_day: "1111111" # all days

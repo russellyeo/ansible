@@ -1,0 +1,4 @@
+---
+host_port: "9091"
+transmission_config_directory: "{{ config_directory }}/transmission"
+transmission_data_directory: "{{ data_directory }}/torrents/standard"

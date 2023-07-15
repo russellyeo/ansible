@@ -1,0 +1,33 @@
+# Set up file structure
+#
+# home
+# └── config
+#     └── transmission
+# servarr
+# └── torrents
+#     └── standard
+#         ├── completed
+#         ├── incomplete
+#         └── watch
+---
+- name: Ensure config directory is present
+  tags: config
+  file:
+    path: "{{ transmission_config_directory }}"
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: "{{ directory_mode }}"
+
+- name: Ensure torrents directories are present
+  tags: config
+  file:
+    path: "{{ transmission_data_directory }}/{{ item }}"
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: "{{ directory_mode }}"
+  loop:
+    - "completed"
+    - "incomplete"
+    - "watch"

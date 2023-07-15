@@ -1,0 +1,22 @@
+---
+- name: Start container
+  tags: container
+  docker_container:
+    name: transmission
+    image: linuxserver/transmission
+    state: started
+    restart_policy: always
+    volumes:
+      - "{{ transmission_config_directory }}:/config"
+      - "{{ transmission_data_directory }}:/downloads"
+    ports:
+      - "{{ host_port }}:9091"
+      - "51413:51413"
+      - "51413:51413/udp"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    env:
+      PUID: "{{ servarr_uid }}"
+      PGID: "{{ servarr_gid }}"
+      TZ: "{{ timezone }}"

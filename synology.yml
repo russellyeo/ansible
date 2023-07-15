@@ -5,6 +5,7 @@
     - vars/main.yml
     - vars/vault.yml
   roles:
+    - transmission
     - transmission-openvpn
     - plex
     - sonarr
@@ -13,5 +14,3 @@
     - bazarr
     - overseerr
     - watchtower
-
- 
