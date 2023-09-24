@@ -1,10 +1,18 @@
+[providers.docker]
+
 [api]
-	debug = true
-	insecure = true
+	dashboard = true
 
 [log]
 	level = "{{ log_level }}"
-	filePath = "/etc/traefik/traefik.log"
 
 [accessLog]
   filePath = "/etc/traefik/access.log"
+
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
+  [entryPoints.websecure]
+    address = ":443"
+
+[certificatesResolvers.tailresolver.tailscale]

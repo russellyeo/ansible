@@ -1,0 +1,58 @@
+---
+- name: Start postgres container
+  tags:
+    - container
+    - postgres
+    - speedtest-tracker
+  docker_container:
+    name: postgres
+    hostname: postgres
+    image: postgres:15
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    networks:
+      - name: "speedtest_tracker_network"
+    volumes:
+      - "speedtest-db:/var/lib/postgresql/data"
+    env:
+      POSTGRES_DB: "speedtest_tracker"
+      POSTGRES_USER: "speedy"
+      POSTGRES_PASSWORD: "password"
+    labels:
+      traefik.enable: "false"
+
+- name: Start speedtest-tracker container
+  tags:
+    - container
+    - speedtest-tracker
+  docker_container:
+    name: speedtest-tracker
+    hostname: speedtest-tracker
+    image: "ghcr.io/alexjustesen/speedtest-tracker:latest"
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    networks:
+      - name: "speedtest_tracker_network"
+    ports:
+      - "4030:80"
+      - "4031:443"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "{{ config_directory }}/speedtest-tracker:/config"
+      - "{{ config_directory }}/speedtest-tracker/web:/etc/ssl/web"
+    env:
+      PUID: "{{ servarr_uid }}"
+      PGID: "{{ servarr_gid }}"
+      TZ: "{{ timezone }}"
+      DB_CONNECTION: "pgsql"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_DATABASE: "speedtest_tracker"
+      DB_USERNAME: "speedy"
+      DB_PASSWORD: "password"
+    labels:
+      traefik.enable: "false"

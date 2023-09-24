@@ -1,0 +1,40 @@
+# Creates a macvlan network
+# https://blog.ktz.me/configure-traefik-macvlans-synology/
+#
+# To create the macvlan on the host os:
+# ```
+# sudo ip link add macvlan0 link eth0 type macvlan mode bridge
+# sudo ip addr add 192.168.44.204/30 dev macvlan0
+# sudo ip link set macvlan0 up
+# sudo ip route add 192.168.44.204/30 dev macvlan0
+#
+# ip link show type macvlan
+# ```
+- name: Create macvlan docker network
+  tags:
+    - traefik
+    - docker_network
+  docker_network:
+    name: "{{ macvlan_name }}"
+    state: present
+    driver: macvlan
+    driver_options:
+      parent: "eth0"
+    ipam_config:
+      - subnet: "{{ macvlan_subnet }}"
+        gateway: "{{ macvlan_gateway }}"
+        iprange: "{{ macvlan_iprange }}"
+
+# The bridge network allows the docker host to communicate with the macvlan network
+- name: Create bridge docker network
+  tags:
+    - traefik
+    - docker_network
+  docker_network:
+    name: "{{ docker_network_bridge }}"
+    state: present
+    internal: no
+    driver: bridge
+    ipam_config:
+      - subnet: "172.20.0.0/24"
+        gateway: "172.20.0.1"

@@ -49,6 +49,8 @@
     env:
       TZ: "{{ timezone }}"
       WEBPASSWORD: "{{ pihole_password }}"
+    labels:
+      traefik.enable: "false"
 
 - name: UFW - Allow TCP ports
   ufw:

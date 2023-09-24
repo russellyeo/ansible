@@ -1,0 +1,9 @@
+# The bridge network allows the docker host to communicate with the macvlan network
+- name: Create bridge network for docker containers
+  tags:
+    - speedtest-tracker
+    - docker_network
+  docker_network:
+    name: "speedtest_tracker_network"
+    state: present
+    driver: bridge

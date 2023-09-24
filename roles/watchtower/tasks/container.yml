@@ -21,3 +21,5 @@
       WATCHTOWER_NOTIFICATION_SLACK_HOOK_URL: "{{ watchtower_notification_slack_hook_url }}"
       WATCHTOWER_NOTIFICATION_SLACK_CHANNEL: "{{ watchtower_notification_slack_channel }}"
       WATCHTOWER_DEBUG: "{{ watchtower_debug }}"
+    labels:
+      traefik.enable: "false"

@@ -1,0 +1,13 @@
+- name: Ensure config directory is present
+  tags:
+    - speedtest-tracker
+    - config
+  file:
+    path: "{{ config_directory }}/{{ item }}"
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: "{{ directory_mode }}"
+  loop:
+    - "speedtest-tracker"
+    - "speedtest-tracker/web"

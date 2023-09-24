@@ -1,12 +1,12 @@
 ---
-# Production
-# acme_file: 'acme.json'
-# ca_server: 'https://acme-v02.api.letsencrypt.org/directory'
-# namecheap_sandbox: 'false'
+docker_image_version: "v3.0.0-beta4"
+docker_network_bridge: "docker_network_bridge"
 
-# Staging
-acme_file: "acme-staging.json"
-ca_server: "https://acme-staging-v02.api.letsencrypt.org/directory"
-namecheap_sandbox: "true"
+ipv4_address: "192.168.44.204"
+
+macvlan_name: "macvlan0"
+macvlan_subnet: "192.168.44.0/24"
+macvlan_gateway: "192.168.44.254"
+macvlan_iprange: "192.168.44.204/30" # 204-207
 
 log_level: "DEBUG"

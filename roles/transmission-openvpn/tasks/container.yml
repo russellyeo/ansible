@@ -50,6 +50,8 @@
       TRANSMISSION_UPLOAD_SLOTS_PER_TORRENT: "{{ upload_slots_per_torrent }}"
       TRANSMISSION_SCRIPT_TORRENT_DONE_ENABLED: "{{ enable_unrar_script }}"
       TRANSMISSION_SCRIPT_TORRENT_DONE_FILENAME: "/config/unrar_completed.sh"
+    labels:
+      traefik.enable: "false"
   loop:
     - {
         name: "transmission-films",

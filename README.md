@@ -41,7 +41,7 @@ ansible all -m ping
 ansible <server> -m ping -u <username>
 
 # run playbook
-ansible-playbook synology.yml
+ansible-playbook playbook.yml
 
 # run playbook extra arguments
 --tags container

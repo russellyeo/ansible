@@ -1,31 +1,31 @@
+# https://doc.traefik.io/traefik/master/https/tailscale/
 ---
-- name: Start container
+- name: Start traefik container
   tags:
     - traefik
     - container
   docker_container:
     name: traefik
-    image: traefik:latest
+    image: "traefik:{{ docker_image_version }}"
     state: "{{ docker_state }}"
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/volume2/@appdata/Tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock"
       - "{{ config_directory }}/traefik:/etc/traefik/"
-    ports:
-      - "8080:8080"
-    # env:
-    #   NAMECHEAP_API_USER: "{{ namecheap_api_user }}"
-    #   NAMECHEAP_API_KEY: "{{ namecheap_api_key }}"
-    #   NAMECHEAP_SANDBOX: "{{ namecheap_sandbox }}"
+    networks:
+      - name: "{{ macvlan_name }}"
+        ipv4_address: "{{ ipv4_address }}"
+      - name: "{{ docker_network_bridge }}"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.traefik.entrypoints: "web"
+      traefik.http.routers.traefik.rule: "Host(`{{ network_tailnet_machine }}.{{ network_tailnet_host }}`) && PathPrefix(`/dashboard`)"
+      traefik.http.routers.traefik.entrypoints: "websecure"
       traefik.http.routers.traefik.service: "api@internal"
-      # traefik.http.routers.traefik.rule: "Host(`synology.{{ network_tailnet }}`)"
-      # traefik.http.routers.traefik.tls: "true"
-      # traefik.http.routers.traefik.tls.certresolver: "tailscale"
+      traefik.http.routers.traefik.tls: "true"
+      traefik.http.routers.traefik.tls.certresolver: "tailresolver"
 
 - name: Start whoami container
   tags:
@@ -38,10 +38,12 @@
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"
-  # labels:
-  #   traefik.enable: "true"
-  #   traefik.http.routers.traefik.entrypoints: "websecure"
-  #   traefik.http.routers.traefik.service: "api@internal"
-  #   traefik.http.routers.traefik.rule: "Host(`whoami.{{ network_tailnet }}`)"
-  #   traefik.http.routers.traefik.tls: "true"
-  #   traefik.http.routers.traefik.tls.certresolver: "tailscale"
+    networks:
+      - name: "{{ docker_network_bridge }}"
+        ipv4_address: "172.20.0.3"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.whoami.rule: "Host(`{{ network_tailnet_machine }}.{{ network_tailnet_host }}`) && PathPrefix(`/whoami`)"
+      traefik.http.routers.whoami.entrypoints: "websecure"
+      traefik.http.routers.whoami.tls: "true"
+      traefik.http.routers.whoami.tls.certresolver: "tailresolver"

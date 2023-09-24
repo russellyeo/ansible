@@ -22,3 +22,5 @@
       PUID: "{{ servarr_uid }}"
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "false"

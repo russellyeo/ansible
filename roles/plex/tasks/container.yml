@@ -24,3 +24,5 @@
       PGID: "{{ servarr_gid }}"
       VERSION: "docker"
       PLEX_CLAIM: "{{ plex_claim }}"
+    labels:
+      traefik.enable: "false"

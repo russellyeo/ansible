@@ -1,0 +1,4 @@
+---
+- import_tasks: file.yml
+- import_tasks: docker_network.yml
+- import_tasks: container.yml

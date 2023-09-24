@@ -10,19 +10,10 @@
     group: servarr
     mode: "{{ directory_mode }}"
 
-- name: Ensure acme.json file exists
-  tags: traefik
-  file:
-    path: "{{ config_directory }}/traefik/{{ acme_file }}"
-    state: touch
-    owner: servarr
-    group: servarr
-    mode: "600"
-    modification_time: preserve
-    access_time: preserve
-
 - name: Template config files
-  tags: traefik
+  tags:
+    - traefik
+    - config
   template:
     src: "{{ item }}.j2"
     dest: "{{ config_directory }}/traefik/{{ item }}"
