@@ -1,0 +1,12 @@
+---
+# Production
+# acme_file: 'acme.json'
+# ca_server: 'https://acme-v02.api.letsencrypt.org/directory'
+# namecheap_sandbox: 'false'
+
+# Staging
+acme_file: "acme-staging.json"
+ca_server: "https://acme-staging-v02.api.letsencrypt.org/directory"
+namecheap_sandbox: "true"
+
+log_level: "DEBUG"

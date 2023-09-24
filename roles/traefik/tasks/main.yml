@@ -1,0 +1,4 @@
+# https://doc.traefik.io/traefik/
+---
+- import_tasks: file.yml
+- import_tasks: container.yml

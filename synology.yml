@@ -5,6 +5,7 @@
     - vars/main.yml
     - vars/vault.yml
   roles:
+    - traefik
     - transmission
     - transmission-openvpn
     - plex

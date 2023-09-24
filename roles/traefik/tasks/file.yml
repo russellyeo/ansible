@@ -1,0 +1,33 @@
+---
+- name: Ensure config directory is present
+  tags:
+    - traefik
+    - config
+  file:
+    path: "{{ config_directory }}/traefik"
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: "{{ directory_mode }}"
+
+- name: Ensure acme.json file exists
+  tags: traefik
+  file:
+    path: "{{ config_directory }}/traefik/{{ acme_file }}"
+    state: touch
+    owner: servarr
+    group: servarr
+    mode: "600"
+    modification_time: preserve
+    access_time: preserve
+
+- name: Template config files
+  tags: traefik
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ config_directory }}/traefik/{{ item }}"
+    owner: servarr
+    group: servarr
+    mode: "600"
+  loop:
+    - "traefik.toml"

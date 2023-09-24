@@ -24,3 +24,10 @@ docker_recreate: "no"
 # DNS
 dns_primary: "1.1.1.1"
 dns_secondary: "1.0.0.1"
+
+# Network
+network_subnet: "{{ vault_network_subnet }}"
+network_gateway: "{{ vault_network_gateway }}"
+network_tailscale_ip: "{{ vault_network_tailscale_ip }}"
+network_tailnet: "{{ vault_network_tailnet }}"
+network_tailscale_machine: "{{ vault_network_tailscale_machine }}"

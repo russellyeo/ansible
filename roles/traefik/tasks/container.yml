@@ -1,0 +1,47 @@
+---
+- name: Start container
+  tags:
+    - traefik
+    - container
+  docker_container:
+    name: traefik
+    image: traefik:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "{{ config_directory }}/traefik:/etc/traefik/"
+    ports:
+      - "8080:8080"
+    # env:
+    #   NAMECHEAP_API_USER: "{{ namecheap_api_user }}"
+    #   NAMECHEAP_API_KEY: "{{ namecheap_api_key }}"
+    #   NAMECHEAP_SANDBOX: "{{ namecheap_sandbox }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.traefik.entrypoints: "web"
+      traefik.http.routers.traefik.service: "api@internal"
+      # traefik.http.routers.traefik.rule: "Host(`synology.{{ network_tailnet }}`)"
+      # traefik.http.routers.traefik.tls: "true"
+      # traefik.http.routers.traefik.tls.certresolver: "tailscale"
+
+- name: Start whoami container
+  tags:
+    - traefik
+    - container
+  docker_container:
+    name: whoami
+    image: traefik/whoami
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+  # labels:
+  #   traefik.enable: "true"
+  #   traefik.http.routers.traefik.entrypoints: "websecure"
+  #   traefik.http.routers.traefik.service: "api@internal"
+  #   traefik.http.routers.traefik.rule: "Host(`whoami.{{ network_tailnet }}`)"
+  #   traefik.http.routers.traefik.tls: "true"
+  #   traefik.http.routers.traefik.tls.certresolver: "tailscale"
