@@ -45,8 +45,8 @@
       - "{{ config_directory }}/speedtest-tracker:/config"
       - "{{ config_directory }}/speedtest-tracker/web:/etc/ssl/web"
     env:
-      PUID: "{{ servarr_uid }}"
-      PGID: "{{ servarr_gid }}"
+      PUID: "{{ my_uid }}"
+      PGID: "{{ my_gid }}"
       TZ: "{{ timezone }}"
       DB_CONNECTION: "pgsql"
       DB_HOST: "postgres"

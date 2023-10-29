@@ -4,22 +4,9 @@
 servarr_uid: "1027"
 servarr_gid: "65538"
 
-# Timezone
-timezone: "Europe/London"
-
 # Filepaths
 config_directory: "/volume2/homes/servarr/config"
 data_directory: "/volume3/servarr"
-
-# File permissions
-directory_mode: "775"
-file_mode: "664"
-
-# Docker
-docker_state: "started"
-docker_restart: "no"
-docker_restart_policy: "unless-stopped"
-docker_recreate: "no"
 
 # DNS
 dns_primary: "1.1.1.1"

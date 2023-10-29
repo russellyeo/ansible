@@ -1,0 +1,10 @@
+# Raspberry Pi group specific variables
+
+# User
+my_uid: "1000"
+my_gid: "1000"
+my_username: "russell"
+
+# Filepaths
+config_directory: "/config"
+data_directory: "/data"

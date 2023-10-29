@@ -1,0 +1,55 @@
+# https://yasha.solutions/install-docker-on-debian-with-ansible/
+---
+- name: Install aptitude
+  apt:
+    name: aptitude
+    state: latest
+    update_cache: true
+
+- name: Update the apt package index
+  become: true
+  apt:
+    name: "*"
+    state: latest
+    update_cache: true
+    force_apt_get: true
+
+- name: Install packages for apt add repository over HTTPS
+  become: true
+  apt:
+    name: "{{ packages }}"
+    force_apt_get: true
+    state: latest
+    update_cache: true
+  vars:
+    packages:
+      - git
+      - apt-transport-https
+      - ca-certificates
+      - wget
+      - software-properties-common
+      - gnupg2
+      - curl
+
+- name: Add Apt signing key from official docker repo
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+
+- name: Add docker official repository for Debian Bullseye
+  apt_repository:
+    repo: deb [arch=arm64] https://download.docker.com/linux/debian bullseye stable
+    state: present
+
+- name: Index new repo into the cache
+  become: true
+  apt:
+    name: "*"
+    state: latest
+    update_cache: true
+    force_apt_get: true
+
+- name: Install docker-ce
+  apt:
+    name: "docker-ce"
+    state: latest

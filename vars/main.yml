@@ -1,3 +1,16 @@
+# Timezone
+timezone: "Europe/London"
+
+# File permissions
+directory_mode: "775"
+file_mode: "664"
+
+# Docker
+docker_state: "started"
+docker_restart: "no"
+docker_restart_policy: "unless-stopped"
+docker_recreate: "no"
+
 # Vault
 ansible_become_pass: "{{ vault_ansible_password }}"
 openvpn_username: "{{ vault_openvpn_username }}"
