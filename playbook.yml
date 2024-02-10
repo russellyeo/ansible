@@ -5,6 +5,7 @@
     - vars/main.yml
     - vars/vault.yml
   roles:
+    - cloudflared
     - transmission
     - transmission-openvpn
     - plex

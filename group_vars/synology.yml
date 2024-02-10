@@ -17,3 +17,6 @@ network_macvlan_subnet: "{{ vault_network_subnet }}"
 network_macvlan_gateway: "{{ vault_network_gateway }}"
 network_tailnet_host: "{{ vault_network_tailnet }}"
 network_tailscale_machine: "{{ vault_network_tailscale_machine }}"
+
+# Cloudflare
+cloudflare_tunnel_token: "{{ vault_cloudflare_tunnel_token }}"

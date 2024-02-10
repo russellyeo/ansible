@@ -1,0 +1,18 @@
+# cloudflared container
+# Docker Hub: https://hub.docker.com/r/cloudflare/cloudflared
+# Docs: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/
+---
+- name: Start container
+  tags:
+    - cloudflared
+    - container
+  docker_container:
+    name: cloudflared
+    image: cloudflare/cloudflared:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    command: tunnel run
+    env:
+      TUNNEL_TOKEN: "{{ cloudflare_tunnel_token }}"

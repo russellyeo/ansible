@@ -41,7 +41,7 @@ ansible all -m ping
 ansible <server> -m ping -u <username>
 
 # run playbook
-ansible-playbook playbook.yml
+ansible-playbook playbook.yml -u ansible
 
 # run playbook extra arguments
 --tags container
