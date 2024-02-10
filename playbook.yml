@@ -1,26 +1,16 @@
-# - name: Synology Media Server
-#   hosts: synology
-#   become: true
-#   vars_files:
-#     - vars/main.yml
-#     - vars/vault.yml
-#   roles:
-#     - transmission
-#     - transmission-openvpn
-#     - plex
-#     - sonarr
-#     - radarr
-#     - prowlarr
-#     - bazarr
-#     - overseerr
-#     - watchtower
-
-- name: Raspberry Pi
-  hosts: raspberrypi
+- name: Synology Media Server
+  hosts: synology
   become: true
   vars_files:
     - vars/main.yml
     - vars/vault.yml
   roles:
-    - docker
-    - speedtest-tracker
+    - transmission
+    - transmission-openvpn
+    - plex
+    - sonarr
+    - radarr
+    - prowlarr
+    - bazarr
+    - overseerr
+    - watchtower
