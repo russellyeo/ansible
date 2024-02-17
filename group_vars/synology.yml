@@ -5,7 +5,7 @@ servarr_uid: "1027"
 servarr_gid: "65538"
 
 # Filepaths
-config_directory: "/volume2/homes/servarr/config"
+config_directory: "/volume3/homes/servarr/config"
 data_directory: "/volume3/servarr"
 
 # DNS
