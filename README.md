@@ -14,10 +14,13 @@ Ansible inventory file `/etc/ansible/hosts`
 
 ```toml
 [synology]
-home ansible_host=<host-ip-address> ansible_port=<host-ssh-port>
+home ansible_host=<host-ip-address>
 
-[all:vars]
+[synology:vars]
 ansible_python_interpreter=/usr/bin/python3
+ansible_connection=ssh
+ansible_port=<host-ssh-port>
+ansible_user=ansible
 ```
 
 Ansible configuration file `/etc/ansible/ansible.cfg`
@@ -30,6 +33,37 @@ vault_password_file = ~/.vault_pass
 pipelining = True
 ```
 
+### Setting up ansible user on synology DSM
+1. Create a new `ansible` user
+2. Add `ansible` user to `administrators` group
+3. Enable SSH for `ansible` user
+4. Create a `.ssh` directory and `authorized_keys` file in the user's home directory with the correct permissions
+
+```sh
+cd /var/services/homes/ansible
+mkdir -p .ssh
+chmod 700 .ssh
+
+touch .ssh/authorized_keys
+chmod 600 .ssh/authorized_keys
+chown -R ansible:users .ssh
+```
+
+5. Add the public key of the control node to the `authorized_keys` file. Copy over the `id_rsa.pub` file from the control node to the ansible user's home directory and append the contents to the `authorized_keys` file.
+
+```sh
+cd .ssh
+cat id_rsa.pub >> authorized_keys
+```
+
+6. Give the ansible user sudo access
+
+`/etc/sudoers.d/ansible`
+```sh
+ansible ALL=(ALL) NOPASSWD:ALL
+```
+
+
 ### Run Playbook
 
 ```sh
@@ -41,7 +75,7 @@ ansible all -m ping
 ansible <server> -m ping -u <username>
 
 # run playbook
-ansible-playbook playbook.yml -u ansible
+ansible-playbook playbook.yml
 
 # run playbook extra arguments
 --tags container
