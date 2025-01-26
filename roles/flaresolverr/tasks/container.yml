@@ -1,0 +1,26 @@
+# Flaresolverr container
+# https://github.com/FlareSolverr/FlareSolverr
+---
+- name: Start container
+  tags:
+    - flaresolverr
+    - container
+  docker_container:
+    name: flaresolverr
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    volumes:
+      - "{{ config_directory }}/flaresolverr:/config"
+    ports:
+      - "{{ host_port }}:8191"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    env:
+      LOG_LEVEL: info
+      TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "false"

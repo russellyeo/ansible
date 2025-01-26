@@ -1,0 +1,11 @@
+---
+- name: Ensure config directory is present
+  tags:
+    - flaresolverr
+    - config
+  file:    
+    path: '{{ config_directory }}/flaresolverr'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}' 
