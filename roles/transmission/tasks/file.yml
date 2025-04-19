@@ -11,7 +11,9 @@
 #         └── watch
 ---
 - name: Ensure config directory is present
-  tags: config
+  tags: 
+    - config
+    - transmission
   file:
     path: "{{ transmission_config_directory }}"
     state: directory
@@ -20,7 +22,9 @@
     mode: "{{ directory_mode }}"
 
 - name: Ensure torrents directories are present
-  tags: config
+  tags: 
+    - config
+    - transmission
   file:
     path: "{{ transmission_data_directory }}/{{ item }}"
     state: directory

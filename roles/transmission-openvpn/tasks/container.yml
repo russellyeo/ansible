@@ -35,6 +35,7 @@
       OPENVPN_PASSWORD: "{{ openvpn_password }}"
       LOCAL_NETWORK: "{{ local_network }}"
       WEBPROXY_ENABLED: "false"
+      TRANSMISSION_RPC_URL: "{{ item.rpcUrl }}"
       TRANSMISSION_RPC_HOST_WHITELIST: "{{ rpc_host_whitelist }}"
       TRANSMISSION_RATIO_LIMIT: "{{ upload_ratio_limit }}"
       TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
@@ -52,21 +53,37 @@
       TRANSMISSION_SCRIPT_TORRENT_DONE_FILENAME: "/config/unrar_completed.sh"
     labels:
       traefik.enable: "false"
+      homepage.group: "Download clients"
+      homepage.name: "Transmission"
+      homepage.icon: "transmission.png"
+      homepage.description: "{{ item.description }}"
+      homepage.href: "http://{{ network_localhost }}:{{ item.port }}{{ item.rpcUrl }}web"
+      homepage.widget.type: transmission
+      homepage.widget.url: "http://{{ network_localhost }}:{{ item.port }}"
+      homepage.widget.username: "admin" 
+      homepage.widget.password: "password"
+      homepage.widget.rpcUrl: "{{ item.rpcUrl }}"
   loop:
     - {
         name: "transmission-films",
+        description: "Films",
+        rpcUrl: "/transmission/films/",
         port: "{{ transmission_films_port }}",
         config_filepath: "{{ config_directory }}/transmission-films",
         data_filepath: "{{ data_directory }}/torrents/films",
       }
     - {
         name: "transmission-tv",
+        description: "TV",
+        rpcUrl: "/transmission/tv/",
         port: "{{ transmission_tv_port }}",
         config_filepath: "{{ config_directory }}/transmission-tv",
         data_filepath: "{{ data_directory }}/torrents/tv",
       }
     - {
         name: "transmission-other",
+        description: "Other",
+        rpcUrl: "/transmission/other/",
         port: "{{ transmission_other_port }}",
         config_filepath: "{{ config_directory }}/transmission-other",
         data_filepath: "{{ data_directory }}/torrents/other",

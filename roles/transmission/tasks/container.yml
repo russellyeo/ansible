@@ -1,11 +1,15 @@
 ---
 - name: Start container
-  tags: container
+  tags: 
+    - container
+    - transmission
   docker_container:
     name: transmission
     image: linuxserver/transmission
-    state: started
-    restart_policy: always
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
     volumes:
       - "{{ transmission_config_directory }}:/config"
       - "{{ transmission_data_directory }}:/downloads"
@@ -22,3 +26,12 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "false"
+      homepage.group: "Download clients"
+      homepage.name: "Transmission"
+      homepage.icon: "transmission.png"
+      homepage.description: "No VPN"
+      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.widget.type: transmission
+      homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.widget.username: "admin" 
+      homepage.widget.password: "password"
