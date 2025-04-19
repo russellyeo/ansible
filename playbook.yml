@@ -5,6 +5,7 @@
     - vars/main.yml
     - vars/vault.yml
   roles:
+    - homepage
     - cloudflared
     - transmission
     - transmission-openvpn

@@ -1,0 +1,29 @@
+# Homepage container
+# https://github.com/gethomepage/homepage
+---
+- name: Start container
+  tags:
+    - homepage
+    - container
+  docker_container:
+    name: homepage
+    image: ghcr.io/gethomepage/homepage:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    volumes:
+      - "{{ config_directory }}/homepage:/app/config"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "{{ host_port }}:3000"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    env:
+      HOMEPAGE_ALLOWED_HOSTS: "gethomepage.dev,192.168.1.164:3000"
+      PUID: "{{ servarr_uid }}"
+      PGID: "{{ servarr_gid }}"
+      TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "false"

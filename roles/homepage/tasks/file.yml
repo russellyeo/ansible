@@ -1,0 +1,11 @@
+---
+- name: Ensure config directory is present
+  tags:
+    - homepage
+    - config
+  file:    
+    path: '{{ config_directory }}/homepage'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
