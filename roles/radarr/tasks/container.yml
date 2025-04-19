@@ -27,3 +27,13 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "false"
+      homepage.group: "Media"
+      homepage.name: "Radarr"
+      homepage.icon: "radarr.png"
+      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.description: "Manage your movies"
+      homepage.widget.type: radarr
+      homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.widget.key: "{{ radarr_api_key }}"
+      homepage.widget.enableQueue: "false"
+      

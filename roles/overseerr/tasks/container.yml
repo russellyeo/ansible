@@ -24,3 +24,11 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "false"
+      homepage.group: "Media"
+      homepage.name: "Overseerr"
+      homepage.icon: "overseerr.png"
+      homepage.description: "Request stuff"
+      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.widget.type: overseerr
+      homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.widget.key: "{{ overseerr_api_key }}"

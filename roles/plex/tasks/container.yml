@@ -26,3 +26,11 @@
       PLEX_CLAIM: "{{ plex_claim }}"
     labels:
       traefik.enable: "false"
+      homepage.group: "Media"
+      homepage.name: "Plex"
+      homepage.icon: "plex.png"
+      homepage.description: "Watch stuff"
+      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.widget.type: plex
+      homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.widget.key: "{{ plex_api_key }}"

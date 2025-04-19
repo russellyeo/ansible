@@ -30,5 +30,10 @@
       traefik.enable: "false"
       homepage.group: "Media"
       homepage.name: "Sonarr"
-      homepage.href: "{{ network_localhost }}:{{ host_port }}"
-      homepage.description: "Sonarr"
+      homepage.icon: "sonarr.png"
+      homepage.description: "Manage your TV Shows"
+      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.widget.type: sonarr
+      homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.widget.key: "{{ sonarr_api_key }}"
+      homepage.widget.enableQueue: "false"
