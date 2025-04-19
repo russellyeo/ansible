@@ -28,3 +28,7 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "false"
+      homepage.group: "Media"
+      homepage.name: "Sonarr"
+      homepage.href: "{{ network_localhost }}:{{ host_port }}"
+      homepage.description: "Sonarr"

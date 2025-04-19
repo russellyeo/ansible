@@ -1,0 +1,39 @@
+# Docker socket proxy
+# - https://github.com/Tecnativa/docker-socket-proxy
+# - https://gethomepage.dev/configs/docker/#using-docker-socket-proxy
+#
+# A security-enhanced proxy for the Docker Socket.
+#
+# Security recommendations
+# - Never expose this container's port to a public network. Only to a Docker networks where only reside the proxy itself and the service that uses it.
+# - Revoke access to any API section that you consider your service should not need.
+# - This image does not include TLS support, just plain HTTP proxy to the host Docker Unix socket (which is not TLS protected even if you configured your host for TLS protection). This is by design because you are supposed to restrict access to it through Docker's built-in firewall.
+# - Read the docs for the API version you are using, and know what you are doing.
+#
+---
+- name: Start container
+  tags:
+    - docker-socket-proxy
+    - container
+  docker_container:
+    name: docker-socket-proxy
+    image: tecnativa/docker-socket-proxy:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "{{ docker_socket_proxy_port }}:2375"
+    networks:
+      - name: "{{ docker_network }}"
+    env:
+      PUID: "{{ servarr_uid }}"
+      PGID: "{{ servarr_gid }}"
+      TZ: "{{ timezone }}"
+      CONTAINERS: "{{ allow_containers }}"
+      SERVICES: "{{ allow_services }}"
+      TASKS: "{{ allow_tasks }}"
+      POST: "{{ allow_post }}"

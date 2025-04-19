@@ -5,6 +5,8 @@
     - vars/main.yml
     - vars/vault.yml
   roles:
+    - docker-network
+    - docker-socket-proxy
     - homepage
     - cloudflared
     - transmission
