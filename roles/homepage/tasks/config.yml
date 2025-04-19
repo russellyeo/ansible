@@ -1,0 +1,32 @@
+---
+- name: Copy Homepage configuration files
+  tags:
+    - homepage
+    - config
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ config_directory }}/homepage/{{ item }}"
+    owner: servarr
+    group: servarr
+    mode: '0644'
+  loop:
+    - settings.yaml
+    - docker.yaml
+    - widgets.yaml
+    - bookmarks.yaml
+    - services.yaml
+    - kubernetes.yaml
+
+- name: Copy Homepage custom files
+  tags:
+    - homepage
+    - config
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ config_directory }}/homepage/{{ item }}"
+    owner: servarr
+    group: servarr
+    mode: '0644'
+  loop:
+    - custom.css
+    - custom.js
