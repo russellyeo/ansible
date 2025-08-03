@@ -1,12 +1,14 @@
 ---
-docker_image_version: "v3.0.0-beta4"
-docker_network_bridge: "docker_network_bridge"
+host_port: "443"
+docker_image_version: "v3.1"
+traefik_config_directory: "{{ config_directory }}/traefik"
 
-ipv4_address: "192.168.44.204"
+# Network configuration
+traefik_web_port: "80"
+traefik_websecure_port: "443"
 
-macvlan_name: "macvlan0"
-macvlan_subnet: "192.168.44.0/24"
-macvlan_gateway: "192.168.44.254"
-macvlan_iprange: "192.168.44.204/30" # 204-207
+# Tailscale domain
+traefik_domain: "{{ tailnet_synology_machine }}.{{ tailnet_host }}"
 
-log_level: "DEBUG"
+# Log configuration
+log_level: "INFO"

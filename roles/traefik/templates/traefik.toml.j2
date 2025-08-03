@@ -1,18 +1,33 @@
-[providers.docker]
-
-[api]
-	dashboard = true
+[global]
+  checkNewVersion = false
+  sendAnonymousUsage = false
 
 [log]
-	level = "{{ log_level }}"
+  level = "{{ log_level }}"
 
 [accessLog]
   filePath = "/etc/traefik/access.log"
 
+[api]
+  dashboard = true
+  insecure = false
+  # Enable API on internal network
+  debug = true
+
 [entryPoints]
   [entryPoints.web]
     address = ":80"
+    [entryPoints.web.http.redirections.entryPoint]
+      to = "websecure"
+      scheme = "https"
+      permanent = true
+
   [entryPoints.websecure]
     address = ":443"
 
-[certificatesResolvers.tailresolver.tailscale]
+[providers]
+  [providers.docker]
+    endpoint = "unix:///var/run/docker.sock"
+    exposedByDefault = false
+    network = "{{ docker_network }}"
+    watch = true

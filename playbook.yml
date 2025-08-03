@@ -7,6 +7,8 @@
   roles:
     - docker-network
     - docker-socket-proxy
+    - coredns
+    - traefik
     - homepage
     - cloudflared
     - transmission

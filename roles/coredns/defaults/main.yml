@@ -1,0 +1,29 @@
+---
+host_port: "53"
+docker_image_version: "1.11.1"
+coredns_config_directory: "{{ config_directory }}/coredns"
+
+# DNS configuration
+coredns_domain: "{{ tailnet_synology_machine }}.{{ tailnet_host }}"
+coredns_ip: "{{ network_localhost }}"
+
+# Upstream DNS servers
+upstream_dns_primary: "{{ dns_primary }}"
+upstream_dns_secondary: "{{ dns_secondary }}"
+
+# Services that need subdomain DNS
+coredns_subdomains:
+  - name: "traefik"
+    ip: "{{ network_localhost }}"
+  - name: "sonarr"
+    ip: "{{ network_localhost }}"
+  - name: "radarr"
+    ip: "{{ network_localhost }}"
+  - name: "overseerr"
+    ip: "{{ network_localhost }}"
+  - name: "prowlarr"
+    ip: "{{ network_localhost }}"
+  - name: "bazarr"
+    ip: "{{ network_localhost }}"
+  - name: "homepage"
+    ip: "{{ network_localhost }}"

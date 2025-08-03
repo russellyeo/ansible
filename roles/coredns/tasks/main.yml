@@ -1,0 +1,12 @@
+---
+- name: Create directories
+  include_tasks: file.yml
+  tags:
+    - coredns
+    - file
+
+- name: Deploy container
+  include_tasks: container.yml
+  tags:
+    - coredns
+    - container

@@ -1,0 +1,31 @@
+---
+- name: Start coredns container
+  tags:
+    - coredns
+    - container
+  docker_container:
+    name: coredns
+    image: "coredns/coredns:{{ docker_image_version }}"
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    volumes:
+      - "{{ coredns_config_directory }}:/etc/coredns:ro"
+    ports:
+      - "{{ host_port }}:53/udp"
+      - "{{ host_port }}:53/tcp"
+    networks:
+      - name: "{{ docker_network }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    env:
+      TZ: "{{ timezone }}"
+    command: ["-conf", "/etc/coredns/Corefile"]
+    labels:
+      traefik.enable: "false"
+      homepage.group: "Infrastructure"
+      homepage.name: "CoreDNS"
+      homepage.icon: "coredns.png"
+      homepage.description: "DNS Server"

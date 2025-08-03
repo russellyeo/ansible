@@ -1,0 +1,20 @@
+---
+- name: Ensure config directory is present
+  tags:
+    - coredns
+    - file
+  file:
+    path: "{{ coredns_config_directory }}"
+    state: directory
+    mode: "{{ directory_mode }}"
+
+- name: Template config files
+  tags:
+    - coredns
+    - file
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ coredns_config_directory }}/{{ item }}"
+    mode: "{{ file_mode }}"
+  loop:
+    - Corefile

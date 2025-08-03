@@ -17,8 +17,8 @@
       - "/etc/localtime:/etc/localtime:ro"
       - "{{ config_directory }}/sonarr:/config"
       - "{{ data_directory }}:/data"
-    ports:
-      - "{{ host_port }}:8989"
+    networks:
+      - name: "{{ docker_network }}"
     dns_servers:
       - "{{ dns_primary }}"
       - "{{ dns_secondary }}"
@@ -27,12 +27,16 @@
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
-      traefik.enable: "false"
+      traefik.enable: "true"
+      traefik.http.routers.sonarr.rule: "Host(`sonarr.{{ tailnet_synology_machine }}.{{ tailnet_host }}`)"
+      traefik.http.routers.sonarr.entrypoints: "websecure"
+      traefik.http.routers.sonarr.tls: "true"
+      traefik.http.services.sonarr.loadbalancer.server.port: "{{ host_port }}"
       homepage.group: "Media"
       homepage.name: "Sonarr"
       homepage.icon: "sonarr.png"
       homepage.description: "Manage your TV Shows"
-      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.href: "https://sonarr.{{ tailnet_synology_machine }}.{{ tailnet_host }}"
       homepage.widget.type: sonarr
       homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
       homepage.widget.key: "{{ sonarr_api_key }}"

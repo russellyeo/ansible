@@ -6,47 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is an Ansible infrastructure as code repository for managing a personal home media server setup on a Synology NAS. It deploys a complete media stack including Plex, Sonarr, Radarr, Transmission, and supporting services via Docker containers.
 
-## Common Commands
-
-### Ansible Operations
-```bash
-# Test connectivity to all hosts
-ansible all -m ping
-
-# Test connectivity to specific host
-ansible <server> -m ping -u <username>
-
-# List inventory
-ansible-inventory --list -y
-
-# Run main playbook
-ansible-playbook playbook.yml
-
-# Run with specific tags
-ansible-playbook playbook.yml --tags container
-
-# Run with extra variables
-ansible-playbook playbook.yml --extra-vars "docker_recreate=yes"
-```
-
-### Docker Management
-```bash
-# List all containers
-docker ps -a
-
-# Stop container
-docker stop <container>
-
-# Remove container
-docker rm <container>
-
-# View container logs
-docker logs -f <container>
-
-# Execute shell in container
-docker exec -it <container> /bin/bash
-```
-
 ## Architecture
 
 ### Inventory Structure

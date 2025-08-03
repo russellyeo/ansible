@@ -13,8 +13,8 @@
     volumes:
       - "{{ config_directory }}/overseerr:/config"
       - "{{ data_directory }}:/data"
-    ports:
-      - "{{ host_port }}:5055"
+    networks:
+      - name: "{{ docker_network }}"
     dns_servers:
       - "{{ dns_primary }}"
       - "{{ dns_secondary }}"
@@ -23,12 +23,16 @@
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
-      traefik.enable: "false"
+      traefik.enable: "true"
+      traefik.http.routers.overseerr.rule: "Host(`overseerr.{{ tailnet_synology_machine }}.{{ tailnet_host }}`)"
+      traefik.http.routers.overseerr.entrypoints: "websecure"
+      traefik.http.routers.overseerr.tls: "true"
+      traefik.http.services.overseerr.loadbalancer.server.port: "{{ host_port }}"
       homepage.group: "Media"
       homepage.name: "Overseerr"
       homepage.icon: "overseerr.png"
       homepage.description: "Request stuff"
-      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.href: "https://overseerr.{{ tailnet_synology_machine }}.{{ tailnet_host }}"
       homepage.widget.type: overseerr
       homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
       homepage.widget.key: "{{ overseerr_api_key }}"

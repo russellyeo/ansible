@@ -1,4 +1,3 @@
-# https://doc.traefik.io/traefik/master/https/tailscale/
 ---
 - name: Start traefik container
   tags:
@@ -13,37 +12,22 @@
     recreate: "{{ docker_recreate }}"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "/volume2/@appdata/Tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock"
-      - "{{ config_directory }}/traefik:/etc/traefik/"
+      - "{{ traefik_config_directory }}:/etc/traefik:ro"
+    ports:
+      - "{{ traefik_web_port }}:80"
+      - "{{ traefik_websecure_port }}:443"
     networks:
-      - name: "{{ macvlan_name }}"
-        ipv4_address: "{{ ipv4_address }}"
-      - name: "{{ docker_network_bridge }}"
+      - name: "{{ docker_network }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    env:
+      PUID: "{{ servarr_uid }}"
+      PGID: "{{ servarr_gid }}"
+      TZ: "{{ timezone }}"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.traefik.rule: "Host(`{{ network_tailnet_machine }}.{{ network_tailnet_host }}`) && PathPrefix(`/dashboard`)"
+      traefik.http.routers.traefik.rule: "Host(`traefik.{{ traefik_domain }}`)"
       traefik.http.routers.traefik.entrypoints: "websecure"
       traefik.http.routers.traefik.service: "api@internal"
       traefik.http.routers.traefik.tls: "true"
-      traefik.http.routers.traefik.tls.certresolver: "tailresolver"
-
-- name: Start whoami container
-  tags:
-    - traefik
-    - container
-  docker_container:
-    name: whoami
-    image: traefik/whoami
-    state: "{{ docker_state }}"
-    restart: "{{ docker_restart }}"
-    restart_policy: "{{ docker_restart_policy }}"
-    recreate: "{{ docker_recreate }}"
-    networks:
-      - name: "{{ docker_network_bridge }}"
-        ipv4_address: "172.20.0.3"
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.whoami.rule: "Host(`{{ network_tailnet_machine }}.{{ network_tailnet_host }}`) && PathPrefix(`/whoami`)"
-      traefik.http.routers.whoami.entrypoints: "websecure"
-      traefik.http.routers.whoami.tls: "true"
-      traefik.http.routers.whoami.tls.certresolver: "tailresolver"
