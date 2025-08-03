@@ -5,11 +5,21 @@ timezone: "Europe/London"
 directory_mode: "775"
 file_mode: "664"
 
+# DNS
+dns_primary: "1.1.1.1"
+dns_secondary: "1.0.0.1"
+
 # Docker
 docker_state: "started"
 docker_restart: "no"
 docker_restart_policy: "unless-stopped"
 docker_recreate: "no"
+
+# Tailscale
+tailnet_host: "{{ vault_tailnet_host }}"
+
+# Cloudflare
+cloudflare_tunnel_token: "{{ vault_cloudflare_tunnel_token }}"
 
 # Vault
 ansible_become_pass: "{{ vault_ansible_password }}"

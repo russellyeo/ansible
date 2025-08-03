@@ -8,23 +8,12 @@ servarr_gid: "65538"
 config_directory: "/volume3/homes/servarr/config"
 data_directory: "/volume3/servarr"
 
-# DNS
-dns_primary: "1.1.1.1"
-dns_secondary: "1.0.0.1"
-
 # Docker
 docker_network: "docker_network_synology"
 docker_socket_proxy_port: "2375"
 
 # Network
 network_localhost: "192.168.1.164"
-network_macvlan_subnet: "{{ vault_network_subnet }}"
-network_macvlan_gateway: "{{ vault_network_gateway }}"
 
 # Tailscale
 tailnet_synology_machine: "{{ vault_tailnet_synology_machine }}"
-tailnet_host: "{{ vault_tailnet_host }}"
-
-
-# Cloudflare
-cloudflare_tunnel_token: "{{ vault_cloudflare_tunnel_token }}"
