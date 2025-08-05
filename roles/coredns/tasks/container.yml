@@ -6,7 +6,7 @@
   docker_container:
     name: coredns
     image: "coredns/coredns:{{ docker_image_version }}"
-    state: "{{ docker_state }}"
+    state: absent
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"

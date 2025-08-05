@@ -23,7 +23,7 @@
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
-      traefik.enable: "true"
+      traefik.enable: "false"
       traefik.http.routers.overseerr.rule: "Host(`overseerr.{{ tailnet_synology_machine }}.{{ tailnet_host }}`)"
       traefik.http.routers.overseerr.entrypoints: "websecure"
       traefik.http.routers.overseerr.tls: "true"

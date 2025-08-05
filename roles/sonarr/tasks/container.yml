@@ -27,7 +27,7 @@
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
-      traefik.enable: "true"
+      traefik.enable: "false"
       traefik.http.routers.sonarr.rule: "Host(`sonarr.{{ tailnet_synology_machine }}.{{ tailnet_host }}`)"
       traefik.http.routers.sonarr.entrypoints: "websecure"
       traefik.http.routers.sonarr.tls: "true"

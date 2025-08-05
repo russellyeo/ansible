@@ -6,7 +6,7 @@
   docker_container:
     name: traefik
     image: "traefik:{{ docker_image_version }}"
-    state: "{{ docker_state }}"
+    state: absent
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"
@@ -26,7 +26,7 @@
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
-      traefik.enable: "true"
+      traefik.enable: "false"
       traefik.http.routers.traefik.rule: "Host(`traefik.{{ traefik_domain }}`)"
       traefik.http.routers.traefik.entrypoints: "websecure"
       traefik.http.routers.traefik.service: "api@internal"
