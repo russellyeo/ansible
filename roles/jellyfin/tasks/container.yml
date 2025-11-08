@@ -1,0 +1,40 @@
+# Jellyfin Media Server
+# https://jellyfin.org/docs/general/installation/container/
+---
+- name: Start container
+  tags:
+    - container
+    - jellyfin
+  docker_container:
+    name: jellyfin
+    image: jellyfin/jellyfin:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    networks:
+      - name: "{{ docker_network }}"
+    published_ports:
+      - "{{ host_port }}:8096"
+      - "7359:7359/udp"
+    volumes:
+      - "{{ config_directory }}/jellyfin:/config"
+      - "{{ config_directory }}/jellyfin/cache:/cache"
+      - "{{ data_directory }}/media:/media:ro"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    env:
+      PUID: "{{ servarr_uid }}"
+      PGID: "{{ servarr_gid }}"
+      TZ: "{{ timezone }}"
+    # labels:
+    #   traefik.enable: "false"
+    #   homepage.group: "Media"
+    #   homepage.name: "Jellyfin"
+    #   homepage.icon: "jellyfin.png"
+    #   homepage.description: "Media streaming"
+    #   homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+    #   homepage.widget.type: jellyfin
+    #   homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
+    #   homepage.widget.key: "{{ jellyfin_api_key }}"

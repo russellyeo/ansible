@@ -1,0 +1,45 @@
+# Set up file structure
+#
+# home
+# └── config
+#     └── jellyfin
+# servarr
+# └── media
+#     ├── films
+#     └── tv
+---
+- name: Ensure config directory is present
+  tags: 
+    - config
+    - jellyfin
+  file:
+    path: '{{ config_directory }}/jellyfin'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+
+- name: Ensure cache directory is present
+  tags: 
+    - config
+    - jellyfin
+  file:
+    path: '{{ config_directory }}/jellyfin/cache'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+
+- name: Ensure media directories are present
+  tags: 
+    - config
+    - jellyfin
+  file:
+    path: '{{ data_directory }}/media/{{ item }}'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+  loop:
+    - 'films'
+    - 'tv'
