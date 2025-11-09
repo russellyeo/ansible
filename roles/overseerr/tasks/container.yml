@@ -1,3 +1,4 @@
+# https://hub.docker.com/r/linuxserver/overseerr
 ---
 - name: Start container
   tags:
@@ -5,7 +6,7 @@
     - container
   docker_container:
     name: overseerr
-    image: lscr.io/linuxserver/overseerr:latest
+    image: lscr.io/linuxserver/overseerr:develop
     state: "{{ docker_state }}"
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
