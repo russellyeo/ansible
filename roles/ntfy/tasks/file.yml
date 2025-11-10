@@ -1,0 +1,22 @@
+---
+- name: Ensure config directory is present
+  tags:
+    - ntfy
+    - config
+  file:
+    path: '{{ config_directory }}/ntfy'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+
+- name: Ensure cache directory is present
+  tags:
+    - ntfy
+    - config
+  file:
+    path: '{{ config_directory }}/ntfy/cache'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
