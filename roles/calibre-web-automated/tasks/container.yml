@@ -27,3 +27,10 @@
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
       NETWORK_SHARE_MODE: "true"
+    labels:
+      traefik.enable: "false"
+      homepage.group: "Media"
+      homepage.name: "Calibre"
+      homepage.icon: "calibre-web.png"
+      homepage.description: "eBook library"
+      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"

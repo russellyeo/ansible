@@ -30,15 +30,11 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "false"
-      traefik.http.routers.sonarr.rule: "Host(`sonarr.{{ tailnet_synology_machine }}.{{ tailnet_host }}`)"
-      traefik.http.routers.sonarr.entrypoints: "websecure"
-      traefik.http.routers.sonarr.tls: "true"
-      traefik.http.services.sonarr.loadbalancer.server.port: "{{ host_port }}"
       homepage.group: "Media"
       homepage.name: "Sonarr"
       homepage.icon: "sonarr.png"
       homepage.description: "Manage your TV Shows"
-      homepage.href: "https://sonarr.{{ tailnet_synology_machine }}.{{ tailnet_host }}"
+      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
       homepage.widget.type: sonarr
       homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
       homepage.widget.key: "{{ sonarr_api_key }}"

@@ -27,15 +27,11 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "false"
-      traefik.http.routers.overseerr.rule: "Host(`overseerr.{{ tailnet_synology_machine }}.{{ tailnet_host }}`)"
-      traefik.http.routers.overseerr.entrypoints: "websecure"
-      traefik.http.routers.overseerr.tls: "true"
-      traefik.http.services.overseerr.loadbalancer.server.port: "{{ host_port }}"
       homepage.group: "Media"
       homepage.name: "Overseerr"
       homepage.icon: "overseerr.png"
       homepage.description: "Request stuff"
-      homepage.href: "https://overseerr.{{ tailnet_synology_machine }}.{{ tailnet_host }}"
+      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
       homepage.widget.type: overseerr
       homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
       homepage.widget.key: "{{ overseerr_api_key }}"

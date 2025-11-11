@@ -26,3 +26,10 @@
       PUID: "{{ servarr_uid }}"
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "false"
+      homepage.group: "Infrastructure"
+      homepage.name: "Ntfy"
+      homepage.icon: "ntfy.png"
+      homepage.description: "Notifications"
+      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"

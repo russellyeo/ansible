@@ -29,14 +29,10 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "false"
-      traefik.http.routers.radarr.rule: "Host(`radarr.{{ tailnet_synology_machine }}.{{ tailnet_host }}`)"
-      traefik.http.routers.radarr.entrypoints: "websecure"
-      traefik.http.routers.radarr.tls: "true"
-      traefik.http.services.radarr.loadbalancer.server.port: "{{ host_port }}"
       homepage.group: "Media"
       homepage.name: "Radarr"
       homepage.icon: "radarr.png"
-      homepage.href: "https://radarr.{{ tailnet_synology_machine }}.{{ tailnet_host }}"
+      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
       homepage.description: "Manage your movies"
       homepage.widget.type: radarr
       homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
