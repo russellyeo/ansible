@@ -1,0 +1,33 @@
+---
+- name: Ensure config directory is present
+  tags:
+    - calibre-web-automated
+    - config
+  file:
+    path: '{{ config_directory }}/calibre-web-automated'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+
+- name: Ensure book ingest directory is present
+  tags:
+    - calibre-web-automated
+    - config
+  file:
+    path: '{{ data_directory }}/books/ingest'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+
+- name: Ensure calibre library directory is present
+  tags:
+    - calibre-web-automated
+    - config
+  file:
+    path: '{{ data_directory }}/books/library'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'

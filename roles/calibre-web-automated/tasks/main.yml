@@ -1,0 +1,8 @@
+# Calibre-Web-Automated is a free and open source software application for managing your eBook library.
+# It provides a clean web UI and integrates with Calibre for metadata management.
+#
+# GitHub: https://github.com/crocodilestick/Calibre-Web-Automated
+# Docker hub: https://hub.docker.com/r/crocodilestick/calibre-web-automated
+---
+- import_tasks: file.yml
+- import_tasks: container.yml
