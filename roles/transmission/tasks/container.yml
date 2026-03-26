@@ -5,7 +5,7 @@
     - transmission
   docker_container:
     name: transmission
-    image: linuxserver/transmission
+    image: linuxserver/transmission:4.0.6
     state: "{{ docker_state }}"
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"

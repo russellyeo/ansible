@@ -13,7 +13,7 @@ docker_network: "docker_network_synology"
 docker_socket_proxy_port: "2375"
 
 # Network
-network_localhost: "192.168.1.164"
+network_localhost: "192.168.1.165"
 
 # Tailscale
 tailnet_synology_machine: "{{ vault_tailnet_synology_machine }}"

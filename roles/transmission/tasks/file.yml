@@ -6,7 +6,7 @@
 # servarr
 # └── torrents
 #     └── standard
-#         ├── completed
+#         ├── complete
 #         ├── incomplete
 #         └── watch
 ---
@@ -32,6 +32,6 @@
     group: servarr
     mode: "{{ directory_mode }}"
   loop:
-    - "completed"
+    - "complete"
     - "incomplete"
     - "watch"
