@@ -1,0 +1,22 @@
+---
+- name: Ensure work directory is present
+  tags:
+    - adguard-home
+    - file
+  file:
+    path: "{{ adguard_config_directory }}/work"
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: "{{ directory_mode }}"
+
+- name: Ensure conf directory is present
+  tags:
+    - adguard-home
+    - file
+  file:
+    path: "{{ adguard_config_directory }}/conf"
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: "{{ directory_mode }}"

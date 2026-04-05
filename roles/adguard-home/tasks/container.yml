@@ -1,0 +1,47 @@
+# https://github.com/AdguardTeam/AdGuardHome/wiki/Docker
+# Uses macvlan network to get its own LAN IP, avoiding port 53 conflict with Synology
+# https://tonylawrence.com/posts/unix/synology/free-your-synology-ports/
+---
+- name: Create macvlan network for AdGuard Home
+  tags:
+    - adguard-home
+    - container
+  docker_network:
+    name: "{{ adguard_macvlan_network }}"
+    state: present
+    driver: macvlan
+    driver_options:
+      parent: "{{ adguard_macvlan_parent }}"
+    ipam_config:
+      - subnet: "{{ adguard_macvlan_subnet }}"
+        gateway: "{{ adguard_macvlan_gateway }}"
+
+- name: Start container
+  tags:
+    - adguard-home
+    - container
+  docker_container:
+    name: adguard-home
+    image: adguard/adguardhome:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    volumes:
+      - "{{ adguard_config_directory }}/work:/opt/adguardhome/work"
+      - "{{ adguard_config_directory }}/conf:/opt/adguardhome/conf"
+    networks:
+      - name: "{{ adguard_macvlan_network }}"
+        ipv4_address: "{{ adguard_ip }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    env:
+      TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "false"
+      homepage.group: "Infrastructure"
+      homepage.name: "AdGuard Home"
+      homepage.icon: "adguard-home.png"
+      homepage.description: "DNS & Ad Blocking"
+      homepage.href: "http://{{ adguard_ip }}:3000"

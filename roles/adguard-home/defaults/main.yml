@@ -1,0 +1,9 @@
+---
+adguard_config_directory: "{{ config_directory }}/adguard-home"
+
+# Macvlan network settings - gives AdGuard its own IP on the LAN
+adguard_macvlan_network: "adguard_network"
+adguard_macvlan_subnet: "192.168.1.0/24"
+adguard_macvlan_gateway: "192.168.1.1"
+adguard_macvlan_parent: "eth1"
+adguard_ip: "192.168.1.166"
