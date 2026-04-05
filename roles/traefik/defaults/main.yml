@@ -1,14 +1,14 @@
 ---
-host_port: "443"
 docker_image_version: "v3.1"
 traefik_config_directory: "{{ config_directory }}/traefik"
 
-# Network configuration
-traefik_web_port: "80"
-traefik_websecure_port: "443"
+# Reuse the existing macvlan network created by adguard-home
+# (only one macvlan network per subnet is allowed)
+traefik_macvlan_network: "adguard_network"
+traefik_ip: "192.168.1.167"
 
-# Tailscale domain
-traefik_domain: "{{ tailnet_synology_machine }}.{{ tailnet_host }}"
+# Local domain for routing rules
+traefik_home_domain: "home.arpa"
 
 # Log configuration
 log_level: "INFO"

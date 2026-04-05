@@ -10,24 +10,18 @@
 
 [api]
   dashboard = true
-  insecure = false
-  # Enable API on internal network
-  debug = true
+  insecure = true
 
 [entryPoints]
   [entryPoints.web]
     address = ":80"
-    [entryPoints.web.http.redirections.entryPoint]
-      to = "websecure"
-      scheme = "https"
-      permanent = true
-
-  [entryPoints.websecure]
-    address = ":443"
 
 [providers]
   [providers.docker]
-    endpoint = "unix:///var/run/docker.sock"
+    endpoint = "tcp://docker-socket-proxy:{{ docker_socket_proxy_port }}"
     exposedByDefault = false
     network = "{{ docker_network }}"
     watch = true
+
+# Dashboard accessible at http://{{ traefik_ip }}:8080
+# Services accessible at http://<service>.{{ traefik_home_domain }}

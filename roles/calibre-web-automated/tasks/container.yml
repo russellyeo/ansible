@@ -28,7 +28,10 @@
       TZ: "{{ timezone }}"
       NETWORK_SHARE_MODE: "true"
     labels:
-      traefik.enable: "false"
+      traefik.enable: "true"
+      traefik.http.routers.calibre.rule: "Host(`calibre.home.arpa`)"
+      traefik.http.routers.calibre.entrypoints: "web"
+      traefik.http.services.calibre.loadbalancer.server.port: "8083"
       homepage.group: "Media"
       homepage.name: "Calibre"
       homepage.icon: "calibre-web.png"

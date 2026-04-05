@@ -28,7 +28,10 @@
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
-      traefik.enable: "false"
+      traefik.enable: "true"
+      traefik.http.routers.radarr.rule: "Host(`radarr.home.arpa`)"
+      traefik.http.routers.radarr.entrypoints: "web"
+      traefik.http.services.radarr.loadbalancer.server.port: "7878"
       homepage.group: "Media"
       homepage.name: "Radarr"
       homepage.icon: "radarr.png"

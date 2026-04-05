@@ -28,4 +28,7 @@
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
-      traefik.enable: "false"
+      traefik.enable: "true"
+      traefik.http.routers.homepage.rule: "Host(`homepage.home.arpa`)"
+      traefik.http.routers.homepage.entrypoints: "web"
+      traefik.http.services.homepage.loadbalancer.server.port: "3000"

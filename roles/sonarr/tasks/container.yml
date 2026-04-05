@@ -29,7 +29,10 @@
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
-      traefik.enable: "false"
+      traefik.enable: "true"
+      traefik.http.routers.sonarr.rule: "Host(`sonarr.home.arpa`)"
+      traefik.http.routers.sonarr.entrypoints: "web"
+      traefik.http.services.sonarr.loadbalancer.server.port: "8989"
       homepage.group: "Media"
       homepage.name: "Sonarr"
       homepage.icon: "sonarr.png"
