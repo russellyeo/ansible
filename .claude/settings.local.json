@@ -4,6 +4,8 @@
       "Bash(dig:*)",
       "Bash(mkdir:*)"
     ],
-    "deny": []
+    "deny": [
+      "Bash(ansible-vault:*)"
+    ]
   }
 }
