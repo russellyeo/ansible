@@ -7,7 +7,7 @@
   docker_container:
     name: ntfy
     image: binwiederhier/ntfy:latest
-    state: "{{ docker_state }}"
+    state: absent
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"

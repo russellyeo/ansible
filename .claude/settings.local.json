@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(dig:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(ansible synology:*)"
     ],
     "deny": [
       "Bash(ansible-vault:*)"

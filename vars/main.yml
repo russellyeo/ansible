@@ -14,6 +14,7 @@ docker_state: "started"
 docker_restart: "no"
 docker_restart_policy: "unless-stopped"
 docker_recreate: "no"
+docker_bridge_gateway: "172.18.0.1"
 
 # Tailscale
 tailnet_host: "{{ vault_tailnet_host }}"

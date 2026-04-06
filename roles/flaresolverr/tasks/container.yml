@@ -8,7 +8,7 @@
   docker_container:
     name: flaresolverr
     image: ghcr.io/flaresolverr/flaresolverr:latest
-    state: "{{ docker_state }}"
+    state: absent
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"

@@ -27,7 +27,7 @@
   docker_container:
     name: pihole
     image: pihole/pihole:latest
-    state: stopped
+    state: absent
     # state: "{{ docker_state }}"
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"

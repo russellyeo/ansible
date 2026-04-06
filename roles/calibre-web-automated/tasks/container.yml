@@ -7,7 +7,7 @@
   docker_container:
     name: calibre-web-automated
     image: crocodilestick/calibre-web-automated:latest
-    state: "{{ docker_state }}"
+    state: absent
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"
@@ -28,7 +28,7 @@
       TZ: "{{ timezone }}"
       NETWORK_SHARE_MODE: "true"
     labels:
-      traefik.enable: "true"
+      traefik.enable: "false"
       traefik.http.routers.calibre.rule: "Host(`calibre.home.arpa`)"
       traefik.http.routers.calibre.entrypoints: "web"
       traefik.http.services.calibre.loadbalancer.server.port: "8083"

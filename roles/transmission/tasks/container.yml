@@ -13,6 +13,8 @@
     volumes:
       - "{{ transmission_config_directory }}:/config"
       - "{{ transmission_data_directory }}:/downloads"
+    networks:
+      - name: "{{ docker_network }}"
     ports:
       - "{{ host_port }}:9091"
       - "51413:51413"

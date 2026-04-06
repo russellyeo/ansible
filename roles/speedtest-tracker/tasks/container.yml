@@ -8,7 +8,7 @@
     name: postgres
     hostname: postgres
     image: postgres:15
-    state: "{{ docker_state }}"
+    state: absent
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"
@@ -31,7 +31,7 @@
     name: speedtest-tracker
     hostname: speedtest-tracker
     image: "ghcr.io/alexjustesen/speedtest-tracker:latest"
-    state: "{{ docker_state }}"
+    state: absent
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"

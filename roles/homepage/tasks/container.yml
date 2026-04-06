@@ -23,7 +23,7 @@
       - "{{ dns_secondary }}"
     env:
       DOCKER_HOST: "tcp://docker-socket-proxy:{{ docker_socket_proxy_port }}"
-      HOMEPAGE_ALLOWED_HOSTS: "gethomepage.dev,{{ tailnet_synology_machine }}.{{ tailnet_host }},{{ network_localhost }}:{{ host_port }}"
+      HOMEPAGE_ALLOWED_HOSTS: "gethomepage.dev,{{ tailnet_synology_machine }}.{{ tailnet_host }},{{ network_localhost }}:{{ host_port }},homepage.home.arpa"
       PUID: "{{ servarr_uid }}"
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"

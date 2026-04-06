@@ -18,6 +18,8 @@
       - "/etc/localtime:/etc/localtime:ro"
       - "{{ item.config_filepath }}:/config"
       - "{{ item.data_filepath }}:/data"
+    networks:
+      - name: "{{ docker_network }}"
     ports:
       - "{{ item.port }}:9091"
     dns_servers:

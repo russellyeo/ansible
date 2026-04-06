@@ -44,4 +44,4 @@
       homepage.name: "AdGuard Home"
       homepage.icon: "adguard-home.png"
       homepage.description: "DNS & Ad Blocking"
-      homepage.href: "http://{{ adguard_ip }}:3000"
+      homepage.href: "http://{{ adguard_ip }}"

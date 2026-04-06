@@ -9,7 +9,7 @@
   docker_container:
     name: cloudflared
     image: cloudflare/cloudflared:latest
-    state: "{{ docker_state }}"
+    state: absent
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"
