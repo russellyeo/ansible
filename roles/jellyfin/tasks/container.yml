@@ -8,7 +8,7 @@
   docker_container:
     name: jellyfin
     image: jellyfin/jellyfin:latest
-    state: "{{ docker_state }}"
+    state: absent
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"
@@ -29,7 +29,7 @@
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
-      traefik.enable: "true"
+      traefik.enable: "false"
       traefik.http.routers.jellyfin.rule: "Host(`jellyfin.home.arpa`)"
       traefik.http.routers.jellyfin.entrypoints: "web"
       traefik.http.services.jellyfin.loadbalancer.server.port: "8096"
