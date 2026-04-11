@@ -3,7 +3,8 @@
     "allow": [
       "Bash(dig:*)",
       "Bash(mkdir:*)",
-      "Bash(ansible synology:*)"
+      "Bash(ansible synology:*)",
+      "Bash(ansible northview:*)"
     ],
     "deny": [
       "Bash(ansible-vault:*)"
