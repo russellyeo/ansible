@@ -7,7 +7,7 @@
   docker_container:
     name: overseerr
     image: lscr.io/linuxserver/overseerr:develop
-    state: "{{ docker_state }}"
+    state: stopped
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"
@@ -26,15 +26,15 @@
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
-      traefik.enable: "true"
+      traefik.enable: "false"
       traefik.http.routers.overseerr.rule: "Host(`overseerr.home.arpa`)"
       traefik.http.routers.overseerr.entrypoints: "web"
-      traefik.http.services.overseerr.loadbalancer.server.port: "5055"
-      homepage.group: "Media"
-      homepage.name: "Overseerr"
-      homepage.icon: "overseerr.png"
-      homepage.description: "Request stuff"
-      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
-      homepage.widget.type: overseerr
-      homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
-      homepage.widget.key: "{{ overseerr_api_key }}"
+      traefik.http.services.overseerr.loadbalancer.server.port: "{{ host_port }}"
+      # homepage.group: "Media"
+      # homepage.name: "Overseerr"
+      # homepage.icon: "overseerr.png"
+      # homepage.description: "Request stuff"
+      # homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      # homepage.widget.type: overseerr
+      # homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
+      # homepage.widget.key: "{{ overseerr_api_key }}"

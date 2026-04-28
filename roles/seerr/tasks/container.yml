@@ -1,0 +1,38 @@
+# https://docs.seerr.dev/getting-started/docker
+---
+- name: Start container
+  tags:
+    - seerr
+    - container
+  docker_container:
+    name: seerr
+    image: ghcr.io/seerr-team/seerr:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    user: "{{ servarr_uid }}:{{ servarr_gid }}"
+    volumes:
+      - "{{ config_directory }}/seerr:/app/config"
+    networks:
+      - name: "{{ docker_network }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    ports:
+      - "{{ host_port }}:5055"
+    env:
+      TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.seerr.rule: "Host(`seerr.home.arpa`)"
+      traefik.http.routers.seerr.entrypoints: "web"
+      traefik.http.services.seerr.loadbalancer.server.port: "{{ host_port }}"
+      homepage.group: "Media"
+      homepage.name: "Seerr"
+      homepage.icon: "seerr.png"
+      homepage.description: "Request media"
+      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.widget.type: "seerr"
+      homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.widget.key: "{{ seerr_api_key }}"

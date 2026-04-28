@@ -1,0 +1,12 @@
+---
+- name: Ensure config directory is present
+  tags:
+    - seerr
+    - file
+    - config
+  file:    
+    path: '{{ config_directory }}/seerr'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
