@@ -6,6 +6,7 @@
   tags:
     - radarr
     - container
+    - media
   docker_container:
     name: radarr
     image: linuxserver/radarr
@@ -37,6 +38,7 @@
       homepage.icon: "radarr.png"
       homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
       homepage.description: "Manage your movies"
+      homepage.weight: "4"
       homepage.widget.type: radarr
       homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
       homepage.widget.key: "{{ radarr_api_key }}"

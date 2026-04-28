@@ -4,6 +4,7 @@
   tags:
     - seerr
     - container
+    - media
   docker_container:
     name: seerr
     image: ghcr.io/seerr-team/seerr:latest
@@ -33,6 +34,7 @@
       homepage.icon: "seerr.png"
       homepage.description: "Request media"
       homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.weight: "2"
       homepage.widget.type: "seerr"
       homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
       homepage.widget.key: "{{ seerr_api_key }}"

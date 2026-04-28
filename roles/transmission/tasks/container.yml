@@ -33,7 +33,6 @@
       homepage.icon: "transmission.png"
       homepage.description: "No VPN"
       homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.weight: "4"
       homepage.widget.type: transmission
-      homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
-      homepage.widget.username: "admin" 
-      homepage.widget.password: "password"
+      homepage.widget.url: "http://transmission:9091"

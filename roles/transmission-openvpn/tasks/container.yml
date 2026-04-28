@@ -60,10 +60,9 @@
       homepage.icon: "transmission.png"
       homepage.description: "{{ item.description }}"
       homepage.href: "http://{{ network_localhost }}:{{ item.port }}{{ item.rpcUrl }}web"
+      homepage.weight: "{{ item.weight }}"
       homepage.widget.type: transmission
-      homepage.widget.url: "http://{{ network_localhost }}:{{ item.port }}"
-      homepage.widget.username: "admin" 
-      homepage.widget.password: "password"
+      homepage.widget.url: "http://{{ item.name }}:9091"
       homepage.widget.rpcUrl: "{{ item.rpcUrl }}"
   loop:
     - {
@@ -73,6 +72,7 @@
         port: "{{ transmission_films_port }}",
         config_filepath: "{{ config_directory }}/transmission-films",
         data_filepath: "{{ data_directory }}/torrents/films",
+        weight: "1"
       }
     - {
         name: "transmission-tv",
@@ -81,6 +81,7 @@
         port: "{{ transmission_tv_port }}",
         config_filepath: "{{ config_directory }}/transmission-tv",
         data_filepath: "{{ data_directory }}/torrents/tv",
+        weight: "2"
       }
     - {
         name: "transmission-other",
@@ -89,4 +90,5 @@
         port: "{{ transmission_other_port }}",
         config_filepath: "{{ config_directory }}/transmission-other",
         data_filepath: "{{ data_directory }}/torrents/other",
+        weight: "3"
       }

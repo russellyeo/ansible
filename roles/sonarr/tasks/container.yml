@@ -6,6 +6,7 @@
   tags:
     - sonarr
     - container
+    - media
   docker_container:
     name: sonarr
     image: linuxserver/sonarr
@@ -38,6 +39,7 @@
       homepage.icon: "sonarr.png"
       homepage.description: "Manage your TV Shows"
       homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.weight: "3"
       homepage.widget.type: sonarr
       homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"
       homepage.widget.key: "{{ sonarr_api_key }}"

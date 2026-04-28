@@ -5,8 +5,8 @@
 transmission_films_port: "9191"
 transmission_tv_port: "9291"
 transmission_other_port: "9391"
-local_network: "192.168.1.0/24"
-rpc_host_whitelist: "127.0.0.1,192.168.*.*"
+local_network: "192.168.1.0/24,172.18.0.0/16"
+rpc_host_whitelist: "127.0.0.1,192.168.*.*,172.18.*.*"
 
 # OpenVPN configuration
 openvpn_provider: "PIA"
