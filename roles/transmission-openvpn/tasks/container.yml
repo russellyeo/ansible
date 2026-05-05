@@ -18,8 +18,6 @@
       - "/etc/localtime:/etc/localtime:ro"
       - "{{ item.config_filepath }}:/config"
       - "{{ item.data_filepath }}:/data"
-    networks:
-      - name: "{{ docker_network }}"
     ports:
       - "{{ item.port }}:9091"
     dns_servers:
@@ -53,6 +51,7 @@
       TRANSMISSION_UPLOAD_SLOTS_PER_TORRENT: "{{ upload_slots_per_torrent }}"
       TRANSMISSION_SCRIPT_TORRENT_DONE_ENABLED: "{{ enable_unrar_script }}"
       TRANSMISSION_SCRIPT_TORRENT_DONE_FILENAME: "/config/unrar_completed.sh"
+      DISABLE_PORT_UPDATER: "true"
     labels:
       traefik.enable: "false"
       homepage.group: "Download clients"
@@ -62,7 +61,7 @@
       homepage.href: "http://{{ network_localhost }}:{{ item.port }}{{ item.rpcUrl }}web"
       homepage.weight: "{{ item.weight }}"
       homepage.widget.type: transmission
-      homepage.widget.url: "http://{{ item.name }}:9091"
+      homepage.widget.url: "http://{{ network_localhost }}:{{ item.port }}"
       homepage.widget.rpcUrl: "{{ item.rpcUrl }}"
   loop:
     - {

@@ -4,7 +4,8 @@
       "Bash(dig:*)",
       "Bash(mkdir:*)",
       "Bash(ansible synology:*)",
-      "Bash(ansible northview:*)"
+      "Bash(ansible northview:*)",
+      "Bash(ansible-playbook *)"
     ],
     "deny": [
       "Bash(ansible-vault:*)"

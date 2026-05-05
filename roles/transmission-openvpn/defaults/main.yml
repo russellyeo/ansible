@@ -10,7 +10,7 @@ rpc_host_whitelist: "127.0.0.1,192.168.*.*,172.18.*.*"
 
 # OpenVPN configuration
 openvpn_provider: "PIA"
-openvpn_config: "uk_london"
+openvpn_config: "netherlands"
 
 # Enable unrar script
 enable_unrar_script: "true"
