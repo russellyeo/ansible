@@ -19,7 +19,7 @@ coredns_subdomains:
     ip: "{{ network_localhost }}"
   - name: "radarr"
     ip: "{{ network_localhost }}"
-  - name: "overseerr"
+  - name: "seerr"
     ip: "{{ network_localhost }}"
   - name: "prowlarr"
     ip: "{{ network_localhost }}"

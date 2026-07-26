@@ -113,8 +113,8 @@ The main `playbook.yml` runs roles in this order:
 5. `cloudflared` - External access tunnel
 6. Download clients: `transmission`, `transmission-openvpn`
 7. Media servers: `plex`
-8. Media management: `sonarr`, `radarr`, `prowlarr`, `bazarr`, `overseerr`
-9. Supporting: `flaresolverr`, `watchtower`
+8. Media management: `sonarr`, `radarr`, `prowlarr`, `bazarr`, `seerr`
+9. Supporting: `flaresolverr`, `adguard-home`, `ntfy`, `watchtower`
 
 ## Development Workflow
 
