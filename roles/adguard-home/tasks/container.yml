@@ -25,7 +25,7 @@
     image: adguard/adguardhome:latest
     state: "{{ docker_state }}"
     restart: "{{ docker_restart }}"
-    restart_policy: "{{ docker_restart_policy }}"
+    restart_policy: "{{ adguard_restart_policy }}"
     recreate: "{{ docker_recreate }}"
     volumes:
       - "{{ adguard_config_directory }}/work:/opt/adguardhome/work"
@@ -40,6 +40,10 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "false"
+      # Never auto-update DNS: watchtower stops the container before recreating
+      # it, and any failure in that window strands the whole LAN without name
+      # resolution. Update deliberately with --tags adguard-home instead.
+      com.centurylinklabs.watchtower.enable: "false"
       homepage.group: "Infrastructure"
       homepage.name: "AdGuard Home"
       homepage.icon: "adguard-home.png"

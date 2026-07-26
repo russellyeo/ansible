@@ -23,12 +23,12 @@
       - "{{ dns_secondary }}"
     env:
       DOCKER_HOST: "tcp://docker-socket-proxy:{{ docker_socket_proxy_port }}"
-      HOMEPAGE_ALLOWED_HOSTS: "{{ network_localhost }}:{{ host_port }},homepage.home.arpa"
+      HOMEPAGE_ALLOWED_HOSTS: "{{ network_localhost }}:{{ host_port }},homepage.{{ home_domain }}"
       PUID: "{{ servarr_uid }}"
       PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.homepage.rule: "Host(`homepage.home.arpa`)"
+      traefik.http.routers.homepage.rule: "Host(`homepage.{{ home_domain }}`)"
       traefik.http.routers.homepage.entrypoints: "web"
       traefik.http.services.homepage.loadbalancer.server.port: "{{ host_port }}"

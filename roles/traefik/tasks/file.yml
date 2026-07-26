@@ -10,6 +10,17 @@
     group: servarr
     mode: "{{ directory_mode }}"
 
+- name: Ensure dynamic config directory is present
+  tags:
+    - traefik
+    - config
+  file:
+    path: "{{ config_directory }}/traefik/dynamic"
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: "{{ directory_mode }}"
+
 - name: Template config files
   tags:
     - traefik
@@ -22,3 +33,4 @@
     mode: "600"
   loop:
     - "traefik.toml"
+    - "dynamic/plex.toml"

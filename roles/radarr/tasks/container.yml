@@ -30,13 +30,13 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.radarr.rule: "Host(`radarr.home.arpa`)"
+      traefik.http.routers.radarr.rule: "Host(`radarr.{{ home_domain }}`)"
       traefik.http.routers.radarr.entrypoints: "web"
       traefik.http.services.radarr.loadbalancer.server.port: "7878"
       homepage.group: "Media"
       homepage.name: "Radarr"
       homepage.icon: "radarr.png"
-      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.href: "http://radarr.{{ home_domain }}"
       homepage.description: "Manage your movies"
       homepage.weight: "4"
       homepage.widget.type: radarr

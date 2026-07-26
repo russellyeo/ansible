@@ -7,3 +7,8 @@ adguard_macvlan_subnet: "192.168.1.0/24"
 adguard_macvlan_gateway: "192.168.1.1"
 adguard_macvlan_parent: "eth1"
 adguard_ip: "192.168.1.166"
+
+# Always restart: this host resolves every *.home.arpa name on the LAN, so it
+# must come back after a stop/recreate gap. "unless-stopped" left it down for
+# 12 days after a stray SIGTERM on 2026-07-14.
+adguard_restart_policy: "always"

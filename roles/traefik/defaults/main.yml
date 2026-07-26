@@ -8,7 +8,11 @@ traefik_macvlan_network: "adguard_network"
 traefik_ip: "192.168.1.167"
 
 # Local domain for routing rules
-traefik_home_domain: "home.arpa"
+traefik_home_domain: "{{ home_domain }}"
+
+# Backend for the host-networked Plex container, routed via the file provider.
+# Mirrors host_port in roles/plex/defaults; role defaults are not shared.
+plex_port: "32400"
 
 # Log configuration
 log_level: "INFO"

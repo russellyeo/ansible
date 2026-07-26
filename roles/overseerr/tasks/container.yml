@@ -27,7 +27,7 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "false"
-      traefik.http.routers.overseerr.rule: "Host(`overseerr.home.arpa`)"
+      traefik.http.routers.overseerr.rule: "Host(`overseerr.{{ home_domain }}`)"
       traefik.http.routers.overseerr.entrypoints: "web"
       traefik.http.services.overseerr.loadbalancer.server.port: "{{ host_port }}"
       # homepage.group: "Media"

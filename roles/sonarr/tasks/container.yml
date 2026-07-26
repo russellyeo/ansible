@@ -31,14 +31,14 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.sonarr.rule: "Host(`sonarr.home.arpa`)"
+      traefik.http.routers.sonarr.rule: "Host(`sonarr.{{ home_domain }}`)"
       traefik.http.routers.sonarr.entrypoints: "web"
       traefik.http.services.sonarr.loadbalancer.server.port: "8989"
       homepage.group: "Media"
       homepage.name: "Sonarr"
       homepage.icon: "sonarr.png"
       homepage.description: "Manage your TV Shows"
-      homepage.href: "http://{{ network_localhost }}:{{ host_port }}"
+      homepage.href: "http://sonarr.{{ home_domain }}"
       homepage.weight: "3"
       homepage.widget.type: sonarr
       homepage.widget.url: "http://{{ network_localhost }}:{{ host_port }}"

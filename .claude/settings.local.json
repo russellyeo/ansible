@@ -5,7 +5,9 @@
       "Bash(mkdir:*)",
       "Bash(ansible synology:*)",
       "Bash(ansible northview:*)",
-      "Bash(ansible-playbook *)"
+      "Bash(ansible-playbook *)",
+      "Bash(dscacheutil -q host -a name sonarr.home.arpa)",
+      "Bash(curl -sv -o /dev/null -m 10 http://sonarr.home.arpa/)"
     ],
     "deny": [
       "Bash(ansible-vault:*)"

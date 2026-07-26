@@ -1,0 +1,16 @@
+# Plex runs with network_mode: host, so the docker provider cannot resolve a
+# backend for it and falls back to 127.0.0.1 (Traefik itself) -> 502.
+#
+# Reach it via the docker bridge gateway, not network_localhost: Traefik sits on
+# the adguard macvlan, and a macvlan container cannot route to its own parent
+# host's LAN IP. Host-networked Plex also listens on the bridge gateway, which
+# Traefik can reach over its docker_network interface. Same trick the homepage
+# plex widget uses.
+[http.routers.plex]
+  rule = "Host(`plex.{{ traefik_home_domain }}`)"
+  entryPoints = ["web"]
+  service = "plex"
+
+[http.services.plex.loadBalancer]
+  [[http.services.plex.loadBalancer.servers]]
+    url = "http://{{ docker_bridge_gateway }}:{{ plex_port }}"

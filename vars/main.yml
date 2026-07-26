@@ -9,6 +9,10 @@ file_mode: "664"
 dns_primary: "1.1.1.1"
 dns_secondary: "1.0.0.1"
 
+# Local domain. Resolved by AdGuard Home's wildcard rewrite *.{{ home_domain }}
+# -> traefik_ip, which then routes by Host() to each container.
+home_domain: "home.arpa"
+
 # Docker
 docker_state: "started"
 docker_restart: "no"

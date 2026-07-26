@@ -28,6 +28,6 @@
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.prowlarr.rule: "Host(`prowlarr.home.arpa`)"
+      traefik.http.routers.prowlarr.rule: "Host(`prowlarr.{{ home_domain }}`)"
       traefik.http.routers.prowlarr.entrypoints: "web"
       traefik.http.services.prowlarr.loadbalancer.server.port: "9696"
