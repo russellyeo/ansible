@@ -4,7 +4,7 @@
 # └── config
 #     ├── transmission-films
 #     ├── transmission-tv
-#     └── transmission-other
+#     └── transmission-misc
 # servarr
 # └── torrents
 #     ├── films
@@ -15,7 +15,7 @@
 #     │   ├── completed
 #     │   ├── incomplete
 #     │   └── watch
-#     └── other
+#     └── misc
 #         ├── completed
 #         ├── incomplete
 #         └── watch
@@ -31,7 +31,7 @@
   loop: 
     - 'transmission-films'
     - 'transmission-tv'
-    - 'transmission-other'
+    - 'transmission-misc'
 
 - name: Ensure torrents directories are present
   tags: config
@@ -48,6 +48,6 @@
     - 'tv/completed'
     - 'tv/incomplete'
     - 'tv/watch'
-    - 'other/completed'
-    - 'other/incomplete'
-    - 'other/watch'
+    - 'misc/completed'
+    - 'misc/incomplete'
+    - 'misc/watch'

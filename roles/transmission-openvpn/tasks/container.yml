@@ -83,11 +83,11 @@
         weight: "2"
       }
     - {
-        name: "transmission-other",
-        description: "Other",
-        rpcUrl: "/transmission/other/",
-        port: "{{ transmission_other_port }}",
-        config_filepath: "{{ config_directory }}/transmission-other",
-        data_filepath: "{{ data_directory }}/torrents/other",
+        name: "transmission-misc",
+        description: "Misc",
+        rpcUrl: "/transmission/misc/",
+        port: "{{ transmission_misc_port }}",
+        config_filepath: "{{ config_directory }}/transmission-misc",
+        data_filepath: "{{ data_directory }}/torrents/misc",
         weight: "3"
       }
