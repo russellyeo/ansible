@@ -1,0 +1,15 @@
+---
+# Synology Container Manager (Docker) daemon management
+synopkg_bin: "/usr/syno/bin/synopkg"
+container_manager_package: "ContainerManager"
+dockerd_service: "pkg-ContainerManager-dockerd.service"
+synology_docker_bin: "/var/packages/ContainerManager/target/usr/bin/docker"
+
+# DSM's own start script makes 3 internal daemon attempts per invocation,
+# so these retries multiply on top of that.
+docker_daemon_start_retries: 2
+docker_daemon_start_delay: 15
+
+# Gap between "package started" and "socket accepting connections".
+docker_daemon_ready_retries: 12
+docker_daemon_ready_delay: 5

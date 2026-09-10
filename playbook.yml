@@ -5,6 +5,11 @@
     - vars/main.yml
     - vars/vault.yml
   roles:
+    # Runs under `always` so a targeted run (--tags plex) still gets the
+    # daemon check before its docker tasks.
+    - role: docker-daemon
+      tags:
+        - always
     - docker-network
     - docker-socket-proxy
     - coredns

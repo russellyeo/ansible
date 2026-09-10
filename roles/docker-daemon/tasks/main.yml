@@ -1,0 +1,53 @@
+---
+# Container Manager can fail to start at boot: containerd stalls opening its
+# boltdb metadata store, DSM's start script times out, and systemd's rate
+# limiter ("start request repeated too quickly") stops it retrying. The
+# package is then left in start_failed and every docker task in this playbook
+# dies with an opaque ConnectionRefusedError(111).
+
+- name: Check for Synology package manager
+  stat:
+    path: "{{ synopkg_bin }}"
+  register: synopkg_check
+  changed_when: false
+
+- name: Ensure Docker daemon is running
+  when: synopkg_check.stat.exists
+  block:
+    - name: Probe Docker daemon
+      command: "{{ synology_docker_bin }} version"
+      register: docker_probe
+      changed_when: false
+      failed_when: false
+
+    - name: Recover Docker daemon
+      when: docker_probe.rc != 0
+      block:
+        - name: Clear systemd failure state and start Container Manager
+          shell: |
+            systemctl reset-failed {{ dockerd_service }} 2>/dev/null || true
+            {{ synopkg_bin }} start {{ container_manager_package }}
+          register: container_manager_start
+          until: container_manager_start.rc == 0
+          retries: "{{ docker_daemon_start_retries }}"
+          delay: "{{ docker_daemon_start_delay }}"
+          changed_when: container_manager_start.rc == 0
+          failed_when: false
+
+        - name: Wait for Docker daemon to accept connections
+          command: "{{ synology_docker_bin }} info"
+          register: docker_ready
+          until: docker_ready.rc == 0
+          retries: "{{ docker_daemon_ready_retries }}"
+          delay: "{{ docker_daemon_ready_delay }}"
+          changed_when: false
+          failed_when: false
+
+        - name: Fail if Docker daemon is still unavailable
+          fail:
+            msg: >-
+              Docker daemon did not come up after
+              {{ docker_daemon_start_retries | int + 1 }} start attempts.
+              Investigate on the NAS with:
+              journalctl -u {{ dockerd_service }} --no-pager -n 50
+          when: docker_ready.rc != 0
