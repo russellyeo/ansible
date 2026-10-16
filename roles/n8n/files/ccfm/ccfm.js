@@ -242,6 +242,39 @@ function buildChangeEmail(plan) {
   };
 }
 
+// The coming Sunday, or today if today is Sunday.
+function nextSunday(today) {
+  return addDays(today, (7 - dayOfWeek(today)) % 7);
+}
+
+function buildReminder({ sunday, events }) {
+  const locationOn = (date) => {
+    const market = events.map(eventMarket).find((m) => m && m.date === date);
+    return market ? market.location : null;
+  };
+  const thisWeek = locationOn(sunday);
+  const lastWeek = locationOn(addDays(sunday, -7));
+  const when = formatDay(sunday);
+
+  if (!thisWeek) {
+    return {
+      subject: `Ally Pally market: nothing listed for ${when}`,
+      text: `No market is listed at either location for ${when}.\nCheck ${CCFM_URL}`,
+    };
+  }
+
+  const address = (LOCATIONS[thisWeek] || { address: '' }).address;
+  const moved = lastWeek !== null && lastWeek !== thisWeek;
+  const lines = [`${when}, 10:00–15:00`, locName(thisWeek), address, `Map: ${mapsUrl(`${locName(thisWeek)}, ${address}`)}`];
+  if (moved) lines.push('', `Note: last week it was at ${locName(lastWeek)}.`);
+  lines.push('', `Schedule: ${CCFM_URL}`);
+
+  return {
+    subject: `${moved ? '📍 Moved! ' : ''}Ally Pally market ${when}: ${locName(thisWeek)}`,
+    text: lines.join('\n'),
+  };
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     CCFM_URL,
@@ -250,6 +283,7 @@ if (typeof module !== 'undefined' && module.exports) {
     ScheduleError,
     addDays,
     buildChangeEmail,
+    buildReminder,
     calendarOps,
     dayOfWeek,
     eventBody,
@@ -258,6 +292,7 @@ if (typeof module !== 'undefined' && module.exports) {
     htmlToText,
     locName,
     mapsUrl,
+    nextSunday,
     parseSchedule,
     planSync,
   };
