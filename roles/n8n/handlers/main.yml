@@ -1,0 +1,7 @@
+---
+# Active workflows imported through the CLI are picked up on startup.
+- name: Restart n8n
+  community.docker.docker_container:
+    name: n8n
+    state: started
+    restart: true

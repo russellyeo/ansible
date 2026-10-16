@@ -1,0 +1,51 @@
+# Workflows live in this repo (templates/workflows) and are imported on
+# change. Edits made in the n8n UI are overwritten: export them back here.
+---
+- name: Import workflows
+  when:
+    - n8n_google_calendar_credential_id | length > 0
+    - n8n_gmail_credential_id | length > 0
+  block:
+    - name: Ensure workflow directory is present
+      tags:
+        - n8n
+        - workflows
+      file:
+        path: '{{ config_directory }}/n8n/workflows'
+        state: directory
+        owner: servarr
+        group: servarr
+        mode: '{{ directory_mode }}'
+
+    # << >> delimiters leave n8n's own {{ }} expressions alone.
+    - name: Render workflows
+      tags:
+        - n8n
+        - workflows
+      template:
+        src: 'workflows/{{ item }}.json.j2'
+        dest: '{{ config_directory }}/n8n/workflows/{{ item }}.json'
+        variable_start_string: '<<'
+        variable_end_string: '>>'
+        owner: servarr
+        group: servarr
+        mode: '{{ file_mode }}'
+      loop: '{{ n8n_workflows }}'
+      register: n8n_rendered_workflows
+
+    - name: Import changed workflows
+      tags:
+        - n8n
+        - workflows
+      community.docker.docker_container_exec:
+        container: n8n
+        argv:
+          - n8n
+          - import:workflow
+          - --activeState=fromJson
+          - '--input=/home/node/.n8n/workflows/{{ item.item }}.json'
+      loop: '{{ n8n_rendered_workflows.results }}'
+      loop_control:
+        label: '{{ item.item }}'
+      when: item.changed
+      notify: Restart n8n

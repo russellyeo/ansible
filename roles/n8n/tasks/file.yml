@@ -1,0 +1,38 @@
+---
+- name: Ensure config directory is present
+  tags:
+    - n8n
+    - file
+    - config
+  file:
+    path: '{{ config_directory }}/n8n'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+
+- name: Ensure Tailscale directories are present
+  tags:
+    - n8n
+    - file
+    - config
+  file:
+    path: '{{ config_directory }}/n8n-tailscale/{{ item }}'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+  loop:
+    - ''
+    - state
+
+- name: Create Tailscale serve config
+  tags:
+    - n8n
+    - config
+  copy:
+    src: tailscale-serve.json
+    dest: '{{ config_directory }}/n8n-tailscale/serve.json'
+    owner: servarr
+    group: servarr
+    mode: '{{ file_mode }}'

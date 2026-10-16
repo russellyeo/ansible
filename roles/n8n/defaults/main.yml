@@ -1,0 +1,21 @@
+---
+host_port: '5678'
+
+# Reached over the tailnet with a real HTTPS cert; Google OAuth needs this
+# for its callback (it rejects http://n8n.home.arpa).
+n8n_tailnet_url: "https://n8n.{{ tailnet_host }}"
+
+# Overridable to force a fetch failure when testing the error workflow.
+ccfm_page_url: "https://www.weareccfm.com/our-markets/alexandra-palace/"
+
+# Import order matters: the error workflow must exist before the others
+# reference it.
+n8n_workflows:
+  - ccfm-error
+  - ccfm-sync
+  - ccfm-reminder
+
+# n8n credential IDs (from /home/credentials/<id>), created by hand in the UI.
+# Workflow import is skipped until both are set in group_vars.
+n8n_google_calendar_credential_id: ""
+n8n_gmail_credential_id: ""

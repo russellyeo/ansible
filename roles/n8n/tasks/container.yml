@@ -1,0 +1,53 @@
+# https://docs.n8n.io/hosting/installation/docker/
+---
+- name: Start container
+  tags:
+    - n8n
+    - container
+  docker_container:
+    name: n8n
+    image: docker.n8n.io/n8nio/n8n:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    user: "{{ servarr_uid }}:{{ servarr_gid }}"
+    volumes:
+      - "{{ config_directory }}/n8n:/home/node/.n8n"
+    # A custom editor base URL makes n8n rewrite its static assets into
+    # ~/.cache on every start. /home/node is not writable by servarr_uid.
+    tmpfs:
+      - "/home/node/.cache:mode=1777"
+    networks:
+      - name: "{{ docker_network }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    ports:
+      - "{{ host_port }}:5678"
+    env:
+      TZ: "{{ timezone }}"
+      GENERIC_TIMEZONE: "{{ timezone }}"
+      # servarr_uid has no passwd entry in the image, so HOME resolves to /.
+      # n8n appends .n8n, landing on the mounted volume.
+      N8N_USER_FOLDER: "/home/node"
+      N8N_HOST: "n8n.{{ home_domain }}"
+      N8N_PROTOCOL: "http"
+      # Base for OAuth callbacks and links in emails. The LAN URL keeps working.
+      N8N_EDITOR_BASE_URL: "{{ n8n_tailnet_url }}/"
+      # Requests arrive through Traefik or tailscale serve.
+      N8N_PROXY_HOPS: "1"
+      WEBHOOK_URL: "http://n8n.{{ home_domain }}/"
+      # Served over plain HTTP on the LAN; secure cookies would block login.
+      N8N_SECURE_COOKIE: "false"
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.n8n.rule: "Host(`n8n.{{ home_domain }}`)"
+      traefik.http.routers.n8n.entrypoints: "web"
+      traefik.http.services.n8n.loadbalancer.server.port: "5678"
+      homepage.group: "Infrastructure"
+      homepage.name: "n8n"
+      homepage.icon: "n8n.png"
+      homepage.description: "Workflow automation"
+      homepage.href: "http://n8n.{{ home_domain }}"

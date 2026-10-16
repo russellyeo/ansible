@@ -1,0 +1,35 @@
+# Gives n8n its own tailnet machine with an HTTPS cert, proxying to the n8n
+# container over the bridge network.
+# https://tailscale.com/kb/1282/docker
+---
+- name: Start Tailscale sidecar container
+  tags:
+    - n8n
+    - container
+  docker_container:
+    name: n8n-tailscale
+    image: tailscale/tailscale:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    # No `hostname: n8n` here: it becomes a network alias and the proxy to
+    # http://n8n:5678 would loop back to this container. TS_HOSTNAME names
+    # the tailnet machine.
+    volumes:
+      - "{{ config_directory }}/n8n-tailscale/state:/var/lib/tailscale"
+      - "{{ config_directory }}/n8n-tailscale/serve.json:/config/serve.json:ro"
+    networks:
+      - name: "{{ docker_network }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    env:
+      TS_AUTHKEY: "{{ tailscale_authkey }}"
+      TS_HOSTNAME: "n8n"
+      TS_STATE_DIR: "/var/lib/tailscale"
+      TS_SERVE_CONFIG: "/config/serve.json"
+      TS_USERSPACE: "true"
+      TS_AUTH_ONCE: "true"
+    labels:
+      traefik.enable: "false"
