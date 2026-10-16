@@ -131,6 +131,117 @@ function parseSchedule(html, today) {
   return markets.sort((a, b) => a.date.localeCompare(b.date));
 }
 
+function mapsUrl(address) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
+function locName(key) {
+  return (LOCATIONS[key] || { name: key }).name;
+}
+
+// Which market a calendar event represents, or null for events the sync
+// did not create.
+function eventMarket(event) {
+  const props = (event.extendedProperties && event.extendedProperties.private) || {};
+  return props.ccfmDate ? { date: props.ccfmDate, location: props.ccfmLocation } : null;
+}
+
+function eventBody({ date, location }) {
+  const loc = LOCATIONS[location];
+  return {
+    summary: `Farmers' Market – ${loc.name}`,
+    location: `${loc.name}, ${loc.address}`,
+    description: [
+      `Alexandra Palace Farmers' Market, 10:00–15:00 at ${loc.name}.`,
+      `Map: ${mapsUrl(`${loc.name}, ${loc.address}`)}`,
+      `Schedule: ${CCFM_URL}`,
+      '',
+      'Managed by the n8n ccfm-sync workflow; manual edits are overwritten.',
+    ].join('\n'),
+    start: { dateTime: `${date}T10:00:00`, timeZone: 'Europe/London' },
+    end: { dateTime: `${date}T15:00:00`, timeZone: 'Europe/London' },
+    extendedProperties: { private: { ccfmDate: date, ccfmLocation: location } },
+  };
+}
+
+// Diff the parsed schedule against the calendar. Only events the sync
+// created (see eventMarket) dated today or later are ever touched.
+function planSync({ markets, events, today, maxRemovals = MAX_REMOVALS }) {
+  const wanted = new Map(markets.filter((m) => m.date >= today).map((m) => [m.date, m]));
+  const update = [];
+  const moved = [];
+  const removed = [];
+  const duplicates = [];
+  const seen = new Set();
+
+  for (const event of events) {
+    const current = eventMarket(event);
+    if (!current || current.date < today) continue;
+    if (seen.has(current.date)) {
+      duplicates.push({ eventId: event.id, ...current });
+      continue;
+    }
+    seen.add(current.date);
+    const market = wanted.get(current.date);
+    if (!market) {
+      removed.push({ eventId: event.id, ...current });
+    } else if (market.location !== current.location) {
+      update.push({ eventId: event.id, market });
+      moved.push({ date: market.date, from: current.location, to: market.location });
+    }
+  }
+
+  const create = [...wanted.values()].filter((m) => !seen.has(m.date));
+  const capTripped = removed.length > maxRemovals;
+  return {
+    create,
+    update,
+    moved,
+    remove: capTripped ? duplicates : [...removed, ...duplicates],
+    removed,
+    capTripped,
+  };
+}
+
+function calendarOps(plan) {
+  return [
+    ...plan.create.map((m) => ({ method: 'POST', path: '/events', body: eventBody(m) })),
+    ...plan.update.map((u) => ({
+      method: 'PUT',
+      path: `/events/${encodeURIComponent(u.eventId)}`,
+      body: eventBody(u.market),
+    })),
+    ...plan.remove.map((r) => ({ method: 'DELETE', path: `/events/${encodeURIComponent(r.eventId)}`, body: null })),
+  ];
+}
+
+// Email only for surprises: a known date moved or vanished. New dates are
+// added silently.
+function buildChangeEmail(plan) {
+  const lines = [];
+  for (const m of plan.moved) {
+    lines.push(`${formatDay(m.date)}: moved from ${locName(m.from)} to ${locName(m.to)}.`);
+  }
+  for (const r of plan.removed) {
+    const outcome = plan.capTripped ? 'event NOT deleted' : 'event deleted';
+    lines.push(`${formatDay(r.date)} (${locName(r.location)}): no longer listed, ${outcome}.`);
+  }
+  if (!lines.length) return null;
+
+  if (plan.capTripped) {
+    lines.push(
+      '',
+      `More than ${MAX_REMOVALS} dates vanished in one run, which looks like a page or parser problem, so nothing was deleted. Check ${CCFM_URL}`,
+    );
+  } else {
+    lines.push('', `Schedule: ${CCFM_URL}`);
+  }
+  return {
+    subject: plan.capTripped ? 'Ally Pally market: schedule check needed' : 'Ally Pally market: schedule changed',
+    text: lines.join('\n'),
+  };
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     CCFM_URL,
@@ -138,9 +249,16 @@ if (typeof module !== 'undefined' && module.exports) {
     MAX_REMOVALS,
     ScheduleError,
     addDays,
+    buildChangeEmail,
+    calendarOps,
     dayOfWeek,
+    eventBody,
+    eventMarket,
     formatDay,
     htmlToText,
+    locName,
+    mapsUrl,
     parseSchedule,
+    planSync,
   };
 }
