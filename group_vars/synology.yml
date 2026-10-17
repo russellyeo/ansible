@@ -17,3 +17,7 @@ network_localhost: "192.168.1.165"
 
 # Tailscale
 tailnet_synology_machine: "{{ vault_tailnet_synology_machine }}"
+
+# n8n credential IDs (from /home/credentials/<id>), created by hand in the UI
+n8n_google_calendar_credential_id: "K17aGovNhhPJuDbZ"
+n8n_gmail_credential_id: "tH78TzH2L2253Obj"
