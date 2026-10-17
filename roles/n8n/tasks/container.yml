@@ -13,11 +13,11 @@
     recreate: "{{ docker_recreate }}"
     user: "{{ servarr_uid }}:{{ servarr_gid }}"
     volumes:
+      # A custom editor base URL makes n8n rewrite its static assets into
+      # ~/.cache on every start, and /home/node is not writable by
+      # servarr_uid. (A tmpfs lost its mode on container restart.)
+      - "{{ config_directory }}/n8n-cache:/home/node/.cache"
       - "{{ config_directory }}/n8n:/home/node/.n8n"
-    # A custom editor base URL makes n8n rewrite its static assets into
-    # ~/.cache on every start. /home/node is not writable by servarr_uid.
-    tmpfs:
-      - "/home/node/.cache:mode=1777"
     networks:
       - name: "{{ docker_network }}"
     dns_servers:

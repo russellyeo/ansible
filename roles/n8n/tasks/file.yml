@@ -11,6 +11,18 @@
     group: servarr
     mode: '{{ directory_mode }}'
 
+- name: Ensure cache directory is present
+  tags:
+    - n8n
+    - file
+    - config
+  file:
+    path: '{{ config_directory }}/n8n-cache'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+
 - name: Ensure Tailscale directories are present
   tags:
     - n8n

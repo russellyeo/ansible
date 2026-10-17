@@ -1,0 +1,66 @@
+{
+  "id": "ccfmRemind000001",
+  "name": "CCFM: Saturday market reminder",
+  "active": true,
+  "settings": { "executionOrder": "v1", "timezone": "Europe/London", "errorWorkflow": "ccfmError0000001" },
+  "nodes": [
+    {
+      "id": "remind-schedule",
+      "name": "Saturday 18:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 18 * * 6" }] } }
+    },
+    {
+      "id": "remind-list",
+      "name": "List events",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 0],
+      "parameters": {
+        "url": "https://www.googleapis.com/calendar/v3/calendars/<< ccfm_calendar_id | urlencode >>/events",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleCalendarOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "timeMin", "value": "={{ $now.setZone('Europe/London').startOf('day').minus({ days: 8 }).toISO() }}" },
+            { "name": "timeMax", "value": "={{ $now.setZone('Europe/London').startOf('day').plus({ days: 8 }).toISO() }}" },
+            { "name": "singleEvents", "value": "true" }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": { "googleCalendarOAuth2Api": { "id": "<< n8n_google_calendar_credential_id >>", "name": "Google Calendar" } }
+    },
+    {
+      "id": "remind-build",
+      "name": "Build reminder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 0],
+      "parameters": { "jsCode": << (lookup('file', 'ccfm/ccfm.js') ~ '\n' ~ lookup('file', 'ccfm/nodes/reminder.js')) | to_json >> }
+    },
+    {
+      "id": "remind-email",
+      "name": "Send reminder",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [750, 0],
+      "parameters": {
+        "sendTo": "<< ccfm_email_to >>",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": { "appendAttribution": false }
+      },
+      "credentials": { "gmailOAuth2": { "id": "<< n8n_gmail_credential_id >>", "name": "Gmail" } }
+    }
+  ],
+  "connections": {
+    "Saturday 18:00": { "main": [[{ "node": "List events", "type": "main", "index": 0 }]] },
+    "List events": { "main": [[{ "node": "Build reminder", "type": "main", "index": 0 }]] },
+    "Build reminder": { "main": [[{ "node": "Send reminder", "type": "main", "index": 0 }]] }
+  }
+}

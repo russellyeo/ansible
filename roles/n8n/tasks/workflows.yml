@@ -17,35 +17,86 @@
         group: servarr
         mode: '{{ directory_mode }}'
 
-    # << >> delimiters leave n8n's own {{ }} expressions alone.
-    - name: Render workflows
-      tags:
-        - n8n
-        - workflows
-      template:
-        src: 'workflows/{{ item }}.json.j2'
-        dest: '{{ config_directory }}/n8n/workflows/{{ item }}.json'
-        variable_start_string: '<<'
-        variable_end_string: '>>'
-        owner: servarr
-        group: servarr
-        mode: '{{ file_mode }}'
-      loop: '{{ n8n_workflows }}'
-      register: n8n_rendered_workflows
+    - name: Render and import workflows
+      block:
+        # << >> delimiters leave n8n's own {{ }} expressions alone.
+        - name: Render workflows
+          tags:
+            - n8n
+            - workflows
+          template:
+            src: 'workflows/{{ item.name }}.json.j2'
+            dest: '{{ config_directory }}/n8n/workflows/{{ item.name }}.json'
+            variable_start_string: '<<'
+            variable_end_string: '>>'
+            owner: servarr
+            group: servarr
+            mode: '{{ file_mode }}'
+          loop: '{{ n8n_workflows }}'
+          loop_control:
+            label: '{{ item.name }}'
+          register: n8n_rendered_workflows
 
-    - name: Import changed workflows
-      tags:
-        - n8n
-        - workflows
-      community.docker.docker_container_exec:
-        container: n8n
-        argv:
-          - n8n
-          - import:workflow
-          - --activeState=fromJson
-          - '--input=/home/node/.n8n/workflows/{{ item.item }}.json'
-      loop: '{{ n8n_rendered_workflows.results }}'
-      loop_control:
-        label: '{{ item.item }}'
-      when: item.changed
-      notify: Restart n8n
+        # Imported workflows arrive unpublished: --activeState=fromJson only
+        # works in queue or multi-main mode.
+        - name: Import changed workflows
+          tags:
+            - n8n
+            - workflows
+          community.docker.docker_container_exec:
+            container: n8n
+            argv:
+              - n8n
+              - import:workflow
+              - '--input=/home/node/.n8n/workflows/{{ item.item.name }}.json'
+          # A one-off import failure was seen right after a restart.
+          register: n8n_cli
+          until: n8n_cli.rc == 0
+          retries: 3
+          delay: 10
+          loop: '{{ n8n_rendered_workflows.results }}'
+          loop_control:
+            label: '{{ item.item.name }}'
+          when: item.changed
+          notify: Restart n8n
+
+        - name: Publish changed workflows
+          tags:
+            - n8n
+            - workflows
+          community.docker.docker_container_exec:
+            container: n8n
+            argv:
+              - n8n
+              - publish:workflow
+              - '--id={{ item.item.id }}'
+          register: n8n_cli
+          until: n8n_cli.rc == 0
+          retries: 3
+          delay: 10
+          loop: '{{ n8n_rendered_workflows.results }}'
+          loop_control:
+            label: '{{ item.item.name }}'
+          when: item.changed and item.item.publish
+          notify: Restart n8n
+
+      # An unchanged rendered file skips the import, so a failed import would
+      # never be retried. Remove the files to force a fresh import next run.
+      rescue:
+        - name: Remove rendered workflows after a failed import
+          tags:
+            - n8n
+            - workflows
+          file:
+            path: '{{ config_directory }}/n8n/workflows/{{ item.name }}.json'
+            state: absent
+          loop: '{{ n8n_workflows }}'
+          loop_control:
+            label: '{{ item.name }}'
+
+        - name: Fail after a failed import
+          tags:
+            - n8n
+            - workflows
+          fail:
+            msg: Workflow import failed; rendered files removed so the next run retries.

@@ -9,11 +9,12 @@ n8n_tailnet_url: "https://n8n.{{ tailnet_host }}"
 ccfm_page_url: "https://www.weareccfm.com/our-markets/alexandra-palace/"
 
 # Import order matters: the error workflow must exist before the others
-# reference it.
+# reference it. `id` matches the template's top-level id; `publish` makes the
+# workflow's triggers live. n8n 2.x only calls a published error workflow.
 n8n_workflows:
-  - ccfm-error
-  - ccfm-sync
-  - ccfm-reminder
+  - { name: ccfm-error, id: ccfmError0000001, publish: true }
+  - { name: ccfm-sync, id: ccfmSync00000001, publish: true }
+  - { name: ccfm-reminder, id: ccfmRemind000001, publish: true }
 
 # n8n credential IDs (from /home/credentials/<id>), created by hand in the UI.
 # Workflow import is skipped until both are set in group_vars.
