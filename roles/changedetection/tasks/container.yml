@@ -1,0 +1,36 @@
+# https://github.com/dgtlmoon/changedetection.io/wiki/Docker-installation
+---
+- name: Start container
+  tags:
+    - changedetection
+    - container
+  docker_container:
+    name: changedetection
+    image: ghcr.io/dgtlmoon/changedetection.io:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    user: "{{ servarr_uid }}:{{ servarr_gid }}"
+    volumes:
+      - "{{ config_directory }}/changedetection:/datastore"
+    networks:
+      - name: "{{ docker_network }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    ports:
+      - "{{ host_port }}:5000"
+    env:
+      TZ: "{{ timezone }}"
+      BASE_URL: "http://changedetection.{{ home_domain }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.changedetection.rule: "Host(`changedetection.{{ home_domain }}`)"
+      traefik.http.routers.changedetection.entrypoints: "web"
+      traefik.http.services.changedetection.loadbalancer.server.port: "5000"
+      homepage.group: "Infrastructure"
+      homepage.name: "changedetection.io"
+      homepage.icon: "changedetection.png"
+      homepage.description: "Website change alerts"
+      homepage.href: "http://changedetection.{{ home_domain }}"

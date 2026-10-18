@@ -1,0 +1,12 @@
+---
+- name: Ensure datastore directory is present
+  tags:
+    - changedetection
+    - file
+    - config
+  file:
+    path: '{{ config_directory }}/changedetection'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'

@@ -114,7 +114,7 @@ The main `playbook.yml` runs roles in this order:
 6. Download clients: `transmission`, `transmission-openvpn`
 7. Media servers: `plex`
 8. Media management: `sonarr`, `radarr`, `prowlarr`, `bazarr`, `seerr`
-9. Supporting: `flaresolverr`, `adguard-home`, `ntfy`, `watchtower`
+9. Supporting: `flaresolverr`, `adguard-home`, `ntfy`, `n8n`, `changedetection`, `watchtower`
 
 ## Development Workflow
 
@@ -141,3 +141,4 @@ The Synology NAS requires:
 - User `ansible` in `administrators` group with SSH access
 - Passwordless sudo configured in `/etc/sudoers.d/ansible`
 - SSH authorized_keys properly configured
+- A Python for Ansible modules. DSM's `/usr/bin/python3` (3.8) is too old for current ansible-core, so the inventory sets `ansible_python_interpreter=/var/services/homes/ansible/.venv-ansible/bin/python`, a Python 3.12 venv with `requests` created by `~/.local/bin/uv` in the ansible user's home

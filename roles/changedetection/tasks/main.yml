@@ -1,0 +1,8 @@
+# changedetection.io watches web pages and notifies on change. It triggers
+# the n8n CCFM sync when the Ally Pally market schedule changes.
+#
+# Documentation: https://changedetection.io
+#
+---
+- import_tasks: file.yml
+- import_tasks: container.yml
