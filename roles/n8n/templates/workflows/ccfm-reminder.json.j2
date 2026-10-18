@@ -43,23 +43,26 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [500, 0],
-      "parameters": { "jsCode": << (lookup('file', 'ccfm/ccfm.js') ~ '\n' ~ lookup('file', 'ccfm/nodes/reminder.js')) | to_json >> }
+      "parameters": { "jsCode": << (lookup('file', 'ccfm/ccfm.js') ~ '\nconst TO = ' ~ (ccfm_email_to | to_json) ~ ';\nconst PHOTOS = ' ~ (ccfm_photos | to_json) ~ ';\n' ~ lookup('file', 'ccfm/nodes/reminder.js')) | to_json >> }
     },
     {
       "id": "remind-email",
       "name": "Send reminder",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "retryOnFail": true,
       "maxTries": 5,
       "waitBetweenTries": 5000,
       "position": [750, 0],
       "parameters": {
-        "sendTo": "<< ccfm_email_to >>",
-        "subject": "={{ $json.subject }}",
-        "emailType": "text",
-        "message": "={{ $json.text }}",
-        "options": { "appendAttribution": false }
+        "method": "POST",
+        "url": "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "gmailOAuth2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ raw: $json.raw }) }}",
+        "options": {}
       },
       "credentials": { "gmailOAuth2": { "id": "<< n8n_gmail_credential_id >>", "name": "Gmail" } }
     }

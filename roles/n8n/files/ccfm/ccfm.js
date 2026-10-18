@@ -5,6 +5,7 @@
 // JS: Code nodes cannot require modules.
 
 const CCFM_URL = 'https://www.weareccfm.com/our-markets/alexandra-palace/';
+const NAME = "Ally Pally Farmers' Market";
 
 const LOCATIONS = {
   park: {
@@ -154,6 +155,16 @@ function locName(key) {
   return (LOCATIONS[key] || { name: key }).name;
 }
 
+// A share link when one is configured, else a search for the address.
+function mapLink(key) {
+  const loc = LOCATIONS[key];
+  return loc.mapUrl || mapsUrl(`${loc.name}, ${loc.address}`);
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+}
+
 // Which market a calendar event represents, or null for events the sync
 // did not create.
 function eventMarket(event) {
@@ -164,11 +175,11 @@ function eventMarket(event) {
 function eventBody({ date, location }) {
   const loc = LOCATIONS[location];
   return {
-    summary: `Farmers' Market – ${loc.name}`,
+    summary: `${NAME} – ${loc.name}`,
     location: `${loc.name}, ${loc.address}`,
     description: [
-      `Alexandra Palace Farmers' Market, 10:00–15:00 at ${loc.name}.`,
-      `Map: ${mapsUrl(`${loc.name}, ${loc.address}`)}`,
+      `${NAME}, 10:00–15:00 at ${loc.name}.`,
+      `Map: ${mapLink(location)}`,
       `Schedule: ${CCFM_URL}`,
       '',
       'Managed by the n8n ccfm-sync workflow; manual edits are overwritten.',
@@ -203,6 +214,9 @@ function planSync({ markets, events, today, maxRemovals = MAX_REMOVALS }) {
     } else if (market.location !== current.location) {
       update.push({ eventId: event.id, market });
       moved.push({ date: market.date, from: current.location, to: market.location });
+    } else if (isStale(event, market)) {
+      // Same place, older wording (a rename, a new map link): refresh quietly.
+      update.push({ eventId: event.id, market });
     }
   }
 
@@ -216,6 +230,11 @@ function planSync({ markets, events, today, maxRemovals = MAX_REMOVALS }) {
     removed,
     capTripped,
   };
+}
+
+function isStale(event, market) {
+  const body = eventBody(market);
+  return event.summary !== body.summary || event.location !== body.location || event.description !== body.description;
 }
 
 function calendarOps(plan) {
@@ -243,17 +262,17 @@ function buildChangeEmail(plan) {
   }
   if (!lines.length) return null;
 
-  if (plan.capTripped) {
-    lines.push(
-      '',
-      `More than ${MAX_REMOVALS} dates vanished in one run, which looks like a page or parser problem, so nothing was deleted. Check ${CCFM_URL}`,
-    );
-  } else {
-    lines.push('', `Schedule: ${CCFM_URL}`);
-  }
+  const footer = plan.capTripped
+    ? `More than ${MAX_REMOVALS} dates vanished in one run, which looks like a page or parser problem, so nothing was deleted. Check ${CCFM_URL}`
+    : `Schedule: ${CCFM_URL}`;
   return {
-    subject: plan.capTripped ? 'Ally Pally market: schedule check needed' : 'Ally Pally market: schedule changed',
-    text: lines.join('\n'),
+    subject: `${NAME}: ${plan.capTripped ? 'schedule check needed' : 'schedule changed'}`,
+    text: [...lines, '', footer].join('\n'),
+    html: [
+      `<p>The ${escapeHtml(NAME)} schedule changed:</p>`,
+      `<ul>${lines.map((l) => `<li>${escapeHtml(l)}</li>`).join('')}</ul>`,
+      `<p>${escapeHtml(footer)}</p>`,
+    ].join('\n'),
   };
 }
 
@@ -272,22 +291,83 @@ function buildReminder({ sunday, events }) {
   const when = formatDay(sunday);
 
   if (!thisWeek) {
+    const text = `No market is listed at either location for ${when}.`;
     return {
-      subject: `Ally Pally market: nothing listed for ${when}`,
-      text: `No market is listed at either location for ${when}.\nCheck ${CCFM_URL}`,
+      subject: `${NAME}: nothing listed for ${when}`,
+      text: `${text}\nCheck ${CCFM_URL}`,
+      html: `<p>${escapeHtml(text)}</p>\n<p><a href="${escapeHtml(CCFM_URL)}">Check the schedule</a></p>`,
+      photo: null,
     };
   }
 
-  const address = (LOCATIONS[thisWeek] || { address: '' }).address;
+  const name = locName(thisWeek);
+  const address = LOCATIONS[thisWeek].address;
+  const map = mapLink(thisWeek);
   const moved = lastWeek !== null && lastWeek !== thisWeek;
-  const lines = [`${when}, 10:00–15:00`, locName(thisWeek), address, `Map: ${mapsUrl(`${locName(thisWeek)}, ${address}`)}`];
+  const lines = [`${when}, 10:00–15:00`, name, address, `Map: ${map}`];
   if (moved) lines.push('', `Note: last week it was at ${locName(lastWeek)}.`);
   lines.push('', `Schedule: ${CCFM_URL}`);
 
+  const items = [
+    ['Where', escapeHtml(name)],
+    ['When', escapeHtml(`${when}, 10:00–15:00`)],
+    ['Address', escapeHtml(address)],
+    ['Map', `<a href="${escapeHtml(map)}">Open in Google Maps</a>`],
+  ];
+  if (moved) items.push(['📍 Moved', escapeHtml(`last week it was at ${locName(lastWeek)}`)]);
+  const html = [
+    `<h2>${escapeHtml(NAME)}</h2>`,
+    `<img src="cid:${thisWeek}" alt="${escapeHtml(name)}" width="480" style="max-width:100%;height:auto;border-radius:8px">`,
+    `<ul>${items.map(([label, value]) => `<li><b>${label}:</b> ${value}</li>`).join('')}</ul>`,
+    `<p><a href="${escapeHtml(CCFM_URL)}">Full schedule</a></p>`,
+  ].join('\n');
+
   return {
-    subject: `${moved ? '📍 Moved! ' : ''}Ally Pally market ${when}: ${locName(thisWeek)}`,
+    subject: `${moved ? '📍 Moved! ' : ''}${NAME}: ${when} at ${name}`,
     text: lines.join('\n'),
+    html,
+    photo: thisWeek,
   };
+}
+
+// RFC 2822 message for the Gmail API's users.messages.send `raw` field:
+// text and HTML alternatives, with images attached inline for cid: links.
+function buildMime({ to, subject, text, html, images = [] }) {
+  const b64 = (value) => Buffer.from(value, 'utf8').toString('base64');
+  const wrap = (data) => data.match(/.{1,76}/g).join('\r\n');
+  const rel = 'ccfm-related';
+  const alt = 'ccfm-alternative';
+  const part = (type, data) =>
+    [`Content-Type: ${type}; charset=UTF-8`, 'Content-Transfer-Encoding: base64', '', wrap(b64(data))];
+  const lines = [
+    `To: ${to}`,
+    `Subject: =?UTF-8?B?${b64(subject)}?=`,
+    'MIME-Version: 1.0',
+    `Content-Type: multipart/related; boundary="${rel}"`,
+    '',
+    `--${rel}`,
+    `Content-Type: multipart/alternative; boundary="${alt}"`,
+    '',
+    `--${alt}`,
+    ...part('text/plain', text),
+    `--${alt}`,
+    ...part('text/html', html),
+    `--${alt}--`,
+  ];
+  for (const image of images) {
+    const ext = image.contentType.split('/')[1].replace('jpeg', 'jpg');
+    lines.push(
+      `--${rel}`,
+      `Content-Type: ${image.contentType}`,
+      'Content-Transfer-Encoding: base64',
+      `Content-ID: <${image.cid}>`,
+      `Content-Disposition: inline; filename="${image.cid}.${ext}"`,
+      '',
+      wrap(image.base64),
+    );
+  }
+  lines.push(`--${rel}--`, '');
+  return Buffer.from(lines.join('\r\n'), 'utf8').toString('base64url');
 }
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -298,6 +378,7 @@ if (typeof module !== 'undefined' && module.exports) {
     ScheduleError,
     addDays,
     buildChangeEmail,
+    buildMime,
     buildReminder,
     calendarOps,
     dayOfWeek,

@@ -33,6 +33,23 @@ rendered file in `{{ config_directory }}/n8n/workflows/` and re-run
 
 Import is skipped until both credential IDs are set in `group_vars/synology.yml`.
 
+### Emails
+
+The reminder is an HTML email with a photo of that week's location
+(`files/ccfm/photos/<location>.jpg`, about 60 KB each). Gmail can't fetch
+images from the NAS, so the photo is attached inline (`cid:`): Ansible
+base64-encodes the photos into the "Build reminder" Code node, `buildMime` in
+`ccfm.js` builds the MIME message, and "Send reminder" posts it to the Gmail
+API (`users.messages.send`) with the `Gmail` credential. The n8n Gmail node
+can't send inline images. To change a photo, replace the JPEG (keep it small)
+and redeploy.
+
+The change email is HTML through the Gmail node; the failure email is plain
+text. Synced events whose title, location or description no longer match
+`eventBody` (after a rename or a new map link) are updated on the next sync
+without an email. A synced event deleted by hand in Google Calendar is
+recreated on the next sync.
+
 ### Tests
 
 ```sh

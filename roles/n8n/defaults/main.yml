@@ -5,6 +5,11 @@ host_port: '5678'
 # for its callback (it rejects http://n8n.home.arpa).
 n8n_tailnet_url: "https://n8n.{{ tailnet_host }}"
 
+# Inline photos for the reminder email, base64-encoded on the controller.
+ccfm_photos:
+  park: '{{ lookup(''ansible.builtin.pipe'', ''base64 < '' ~ role_path ~ ''/files/ccfm/photos/park.jpg | tr -d "\n"'') }}'
+  campsbourne: '{{ lookup(''ansible.builtin.pipe'', ''base64 < '' ~ role_path ~ ''/files/ccfm/photos/campsbourne.jpg | tr -d "\n"'') }}'
+
 # Overridable to force a fetch failure when testing the error workflow.
 ccfm_page_url: "https://www.weareccfm.com/our-markets/alexandra-palace/"
 

@@ -4,10 +4,11 @@ const { planSync, eventBody, calendarOps, buildChangeEmail } = require('../ccfm.
 
 const TODAY = '2026-10-16';
 const m = (date, location) => ({ date, location });
-const ev = (id, date, location) => ({
-  id,
-  extendedProperties: { private: { ccfmDate: date, ccfmLocation: location } },
-});
+// A synced event as Google returns it: the details eventBody wrote.
+const ev = (id, date, location) => {
+  const { summary, location: where, description } = eventBody({ date, location });
+  return { id, summary, location: where, description, extendedProperties: { private: { ccfmDate: date, ccfmLocation: location } } };
+};
 
 test('creates events for upcoming markets only', () => {
   const plan = planSync({
@@ -82,7 +83,7 @@ test('removes duplicate events without reporting them', () => {
 
 test('event body pins wall-clock time in Europe/London, even on clock-change day', () => {
   const body = eventBody(m('2026-10-25', 'campsbourne'));
-  assert.equal(body.summary, "Farmers' Market – Campsbourne School");
+  assert.equal(body.summary, "Ally Pally Farmers' Market – Campsbourne School");
   assert.equal(body.location, 'Campsbourne School, Nightingale Lane, N8 7AF');
   assert.deepEqual(body.start, { dateTime: '2026-10-25T10:00:00', timeZone: 'Europe/London' });
   assert.deepEqual(body.end, { dateTime: '2026-10-25T15:00:00', timeZone: 'Europe/London' });
@@ -116,7 +117,8 @@ test('change email reports moves and deletions', () => {
     today: TODAY,
   });
   const email = buildChangeEmail(plan);
-  assert.equal(email.subject, 'Ally Pally market: schedule changed');
+  assert.equal(email.subject, "Ally Pally Farmers' Market: schedule changed");
+  assert.match(email.html, /<li>Sunday 25 October: moved from Alexandra Palace Park to Campsbourne School\.<\/li>/);
   assert.match(email.text, /Sunday 25 October: moved from Alexandra Palace Park to Campsbourne School\./);
   assert.match(email.text, /Sunday 1 November \(Alexandra Palace Park\): no longer listed, event deleted\./);
 });
@@ -128,7 +130,15 @@ test('change email warns when the safety cap trips', () => {
     today: TODAY,
   });
   const email = buildChangeEmail(plan);
-  assert.equal(email.subject, 'Ally Pally market: schedule check needed');
+  assert.equal(email.subject, "Ally Pally Farmers' Market: schedule check needed");
   assert.match(email.text, /event NOT deleted/);
   assert.match(email.text, /nothing was deleted/);
+});
+
+test('refreshes out-of-date event details without reporting a move', () => {
+  const stale = { ...ev('e1', '2026-10-25', 'park'), summary: "Farmers' Market – Alexandra Palace Park" };
+  const plan = planSync({ markets: [m('2026-10-25', 'park')], events: [stale], today: TODAY });
+  assert.deepEqual(plan.update, [{ eventId: 'e1', market: m('2026-10-25', 'park') }]);
+  assert.deepEqual(plan.moved, []);
+  assert.equal(buildChangeEmail(plan), null);
 });
