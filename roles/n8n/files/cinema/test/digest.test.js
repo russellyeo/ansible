@@ -49,7 +49,7 @@ test('captioned films have image, IMDb link, meta line with trailer, and booking
   const meta = d.html.slice(d.html.indexOf('>IMDb<'), d.html.indexOf('Verity synopsis.'));
   assert.match(meta, /71%/);
   assert.match(meta, /1h 54m/);
-  assert.match(meta, /<a href="https:\/\/www\.youtube\.com\/watch\?v=Verity"[^>]*>▶ Watch trailer<\/a>/);
+  assert.match(meta, /<a href="https:\/\/www\.youtube\.com\/watch\?v=Verity"[^>]*><span style="[^"]*background:#ff0000;color:#fff[^"]*">&#9654;&#xFE0E;<\/span> Watch trailer<\/a>/);
   assert.match(d.html, /Everyman Muswell Hill/);
   assert.match(d.html, /Sun 25 Oct/);
   assert.match(d.html, /<a href="https:\/\/book\.example\/2026-10-25T20%3A15"[^>]*>20:15<\/a>/);

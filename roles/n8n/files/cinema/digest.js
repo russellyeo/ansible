@@ -40,7 +40,10 @@ function metaHtml(film) {
     film.imdbRating && `${imdb} ${num(film.imdbRating)}`,
     film.rottenTomatoes && `${tomato} ${num(film.rottenTomatoes)}`,
     runtimeText(film.runtimeMin) && `⏱ ${runtimeText(film.runtimeMin)}`,
-    film.trailerUrl && `<a href="${escapeHtml(film.trailerUrl)}" style="color:#0b57d0;font-weight:600;text-decoration:none">▶ Watch trailer</a>`,
+    // YouTube-style red play badge; U+FE0E keeps iOS from drawing ▶ as an emoji.
+    film.trailerUrl &&
+      `<a href="${escapeHtml(film.trailerUrl)}" style="color:#222;font-weight:600;text-decoration:none">` +
+        '<span style="display:inline-block;background:#ff0000;color:#fff;border-radius:5px;font-size:9px;line-height:13px;padding:0 5px;vertical-align:1px">&#9654;&#xFE0E;</span> Watch trailer</a>',
   ].filter(Boolean);
   return parts.length ? `<p style="color:#666;font-size:13px;margin:0 0 6px">${parts.join('&nbsp;&nbsp;&nbsp;')}</p>` : '';
 }
