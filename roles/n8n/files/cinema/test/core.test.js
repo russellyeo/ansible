@@ -21,6 +21,15 @@ test('normalises preview and presenter titles', () => {
   assert.equal(normaliseTitle("Pan's Labyrinth").key, 'panslabyrinth');
 });
 
+test('normalises event prefixes and HTML entities', () => {
+  assert.equal(normaliseTitle('Godzilla Minus Zero&nbsp;').title, 'Godzilla Minus Zero');
+  assert.equal(normaliseTitle('IMAX Preview: Godzilla Minus Zero').title, 'Godzilla Minus Zero');
+  assert.equal(normaliseTitle('Special Preview: La Bola Negra').title, 'La Bola Negra');
+  assert.equal(normaliseTitle('Tom &amp; Jerry &#39;Live&#39;').title, "Tom & Jerry 'Live'");
+  assert.equal(normaliseTitle('Mission: Impossible').title, 'Mission: Impossible');
+  assert.equal(normaliseTitle('National Theatre Live: Hay Fever').title, 'National Theatre Live: Hay Fever');
+});
+
 test('groups by film in order of first screening', () => {
   const s = (title, start) => ({ title, start, year: null });
   const groups = groupByFilm([s('B', '2026-10-23T18:00'), s('A', '2026-10-22T20:00'), s('B - Preview', '2026-10-22T19:00')]);
@@ -43,11 +52,11 @@ test('builds chain requests', () => {
   assert.deepEqual(ph, {
     method: 'POST',
     url: 'https://www.picturehouses.com/api/scheduled-movies-ajax',
-    contentType: 'application/x-www-form-urlencoded',
-    body: 'cinema_id=024',
+    body: '{"cinema_id":"024"}',
   });
   const em = cinemaRequest({ key: 'everyman-muswell-hill', chain: 'everyman', chain_id: 'X06SN' }, '2026-10-18');
   assert.equal(em.method, 'GET');
+  assert.equal(em.body, '{}');
   assert.match(
     em.url,
     /schedule\?theaters=%7B%22id%22%3A%22X06SN%22%2C%22timeZone%22%3A%22Europe%2FLondon%22%7D&from=2026-10-18T00%3A00%3A00&to=2026-12-17T23%3A59%3A59/,

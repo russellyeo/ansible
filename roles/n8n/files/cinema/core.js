@@ -52,9 +52,19 @@ function fitsFreeHours(start, hours = FREE_HOURS_DEFAULT) {
   return time < hours.weekdayBefore || time >= hours.weekdayFrom;
 }
 
+const HTML_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+
+function decodeEntities(text) {
+  return String(text).replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) => {
+    if (e[0] === '#') return String.fromCodePoint(e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : Number(e.slice(1)));
+    return HTML_ENTITIES[e.toLowerCase()] ?? m;
+  });
+}
+
 function normaliseTitle(raw) {
-  const title = String(raw)
-    .replace(/^.*?\bPresents:\s*/i, '')
+  const title = decodeEntities(raw)
+    .replace(/\u00a0/g, ' ')
+    .replace(/^.*?\b(?:Presents|Preview):\s*/i, '')
     .replace(/\s+-\s+Preview\s*$/i, '')
     .replace(/\s*\((?:Re-release|Preview)\)\s*$/i, '')
     .replace(/\s*\+\s*Q\s*&\s*A\s*$/i, '')
@@ -98,14 +108,15 @@ function formatRange(fromIso, toIso) {
   return `${f(fromIso)} – ${f(toIso)}`;
 }
 
+// Every request is sent with a JSON body (n8n's HTTP node mangles text
+// responses to raw-body requests); Picturehouse accepts JSON form input.
 function cinemaRequest(cinema, today) {
   switch (cinema.chain) {
     case 'picturehouse':
       return {
         method: 'POST',
         url: 'https://www.picturehouses.com/api/scheduled-movies-ajax',
-        contentType: 'application/x-www-form-urlencoded',
-        body: `cinema_id=${encodeURIComponent(cinema.chain_id)}`,
+        body: JSON.stringify({ cinema_id: cinema.chain_id }),
       };
     case 'everyman': {
       const theaters = encodeURIComponent(JSON.stringify({ id: cinema.chain_id, timeZone: 'Europe/London' }));
@@ -114,15 +125,13 @@ function cinemaRequest(cinema, today) {
       return {
         method: 'GET',
         url: `https://www.everymancinema.com/api/gatsby-source-boxofficeapi/schedule?theaters=${theaters}&from=${from}&to=${to}`,
-        contentType: null,
-        body: null,
+        body: '{}',
       };
     }
     case 'bfi':
       return {
         method: 'POST',
         url: FLARESOLVERR_URL,
-        contentType: 'application/json',
         body: JSON.stringify({ cmd: 'request.get', url: BFI_URL, maxTimeout: 180000 }),
       };
     default:

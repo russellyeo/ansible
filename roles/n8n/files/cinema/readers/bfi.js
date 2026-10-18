@@ -66,7 +66,7 @@ function readBfi(text, cinema) {
     return {
       cinemaKey: cinema.key,
       sourceId: r.id,
-      title: r.description,
+      title: decodeEntities(r.description).replace(/\u00a0/g, ' ').trim(),
       start,
       screen: null,
       bookingUrl: r.additional_info ? BFI_BOOKING_BASE + r.additional_info : null,

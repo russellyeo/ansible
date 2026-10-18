@@ -1,0 +1,828 @@
+{%- set lib = 'const CINEMAS = ' ~ (cinemas | to_json) ~ ';\nconst FREE_HOURS = ' ~ (cinema_free_hours | to_json) ~ ';\n'
+  ~ lookup('file', 'cinema/core.js') ~ '\n'
+  ~ lookup('file', 'cinema/readers/picturehouse.js') ~ '\n'
+  ~ lookup('file', 'cinema/readers/everyman.js') ~ '\n'
+  ~ lookup('file', 'cinema/readers/bfi.js') ~ '\n'
+  ~ lookup('file', 'cinema/films.js') ~ '\n'
+  ~ lookup('file', 'cinema/calendar.js') ~ '\n'
+  ~ lookup('file', 'cinema/digest.js') ~ '\n'
+  ~ lookup('file', 'cinema/nodes/common.js') ~ '\n' -%}
+{#- Branch order matters (executionOrder v1 runs sibling branches top to
+    bottom, each to completion): side lookups sit above the node that reads
+    them, and Result sits lowest so its output is the sub-workflow's. -#}
+{
+  "id": "cinemaCollect001",
+  "name": "Cinema: collect subtitled screenings",
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "timezone": "Europe/London",
+    "errorWorkflow": "ccfmError0000001"
+  },
+  "nodes": [
+    {
+      "id": "collect-trigger",
+      "name": "When called",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "inputSource": "passthrough"
+      }
+    },
+    {
+      "id": "collect-manual",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "collect-requests",
+      "name": "Requests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ lookup('file', 'cinema/nodes/requests.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-fetch",
+      "name": "Fetch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "onError": "continueRegularOutput",
+      "position": [
+        400,
+        0
+      ],
+      "parameters": {
+        "method": "={{ $json.request.method }}",
+        "url": "={{ $json.request.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.request.body }}",
+        "options": {
+          "timeout": 200000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "collect-retry",
+      "name": "Retry list",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        -200
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ lookup('file', 'cinema/nodes/retry.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-wait",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        -200
+      ],
+      "webhookId": "0d3f7c1e-5a2b-4c8d-9e6f-1a2b3c4d5e6f",
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 30,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "collect-fetch-again",
+      "name": "Fetch again",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "onError": "continueRegularOutput",
+      "position": [
+        1000,
+        -200
+      ],
+      "parameters": {
+        "method": "={{ $json.request.method }}",
+        "url": "={{ $json.request.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.request.body }}",
+        "options": {
+          "timeout": 200000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "collect-read",
+      "name": "Read",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        0
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ lookup('file', 'cinema/nodes/read.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-everyman-request",
+      "name": "Everyman request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        -100
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ lookup('file', 'cinema/nodes/everyman.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-everyman",
+      "name": "Everyman films",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput",
+      "position": [
+        1000,
+        -100
+      ],
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "collect-load-films",
+      "name": "Load film cache",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
+      "position": [
+        800,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "cinema_films"
+        },
+        "returnAll": true
+      }
+    },
+    {
+      "id": "collect-load-status",
+      "name": "Load status",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
+      "position": [
+        1000,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "cinema_status"
+        },
+        "returnAll": true
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "collect-plan",
+      "name": "Plan lookups",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        0
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ lookup('file', 'cinema/nodes/lookups.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-search-requests",
+      "name": "Search requests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        -600
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ lookup('file', 'cinema/nodes/search.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-tmdb-search",
+      "name": "TMDB search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput",
+      "position": [
+        1600,
+        -600
+      ],
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "cinemaTmdb000001",
+          "name": "TMDB"
+        }
+      }
+    },
+    {
+      "id": "collect-movie-requests",
+      "name": "Movie requests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        -400
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ lookup('file', 'cinema/nodes/movies.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-tmdb-movie",
+      "name": "TMDB movie",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput",
+      "position": [
+        1600,
+        -400
+      ],
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "cinemaTmdb000001",
+          "name": "TMDB"
+        }
+      }
+    },
+    {
+      "id": "collect-omdb-requests",
+      "name": "OMDb requests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        -200
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ lookup('file', 'cinema/nodes/omdb.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-omdb",
+      "name": "OMDb",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput",
+      "position": [
+        1600,
+        -200
+      ],
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "options": {}
+      },
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "cinemaOmdb000001",
+          "name": "OMDb"
+        }
+      }
+    },
+    {
+      "id": "collect-assemble",
+      "name": "Assemble",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        0
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ lookup('file', 'cinema/nodes/assemble.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-film-rows",
+      "name": "Film rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return $('Assemble').first().json.cacheRowsToSave.map((row) => ({ json: row }));"
+      }
+    },
+    {
+      "id": "collect-save-films",
+      "name": "Save films",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1800,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "cinema_films"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "key",
+              "condition": "eq",
+              "keyValue": "={{ $json.key }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "key": "={{ $json.key }}",
+            "data": "={{ $json.data }}",
+            "override_tmdb_id": "={{ $json.override_tmdb_id }}",
+            "fetched_at": "={{ $json.fetched_at }}",
+            "ratings_at": "={{ $json.ratings_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "key",
+              "displayName": "key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "override_tmdb_id",
+              "displayName": "override_tmdb_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fetched_at",
+              "displayName": "fetched_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ratings_at",
+              "displayName": "ratings_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "collect-status-rows",
+      "name": "Status rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        200
+      ],
+      "parameters": {
+        "jsCode": "return $('Assemble').first().json.statusRowsToSave.map((row) => ({ json: row }));"
+      }
+    },
+    {
+      "id": "collect-save-status",
+      "name": "Save status",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1800,
+        200
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "cinema_status"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "cinema_key",
+              "condition": "eq",
+              "keyValue": "={{ $json.cinema_key }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "cinema_key": "={{ $json.cinema_key }}",
+            "last_captioned": "={{ $json.last_captioned }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "cinema_key",
+              "displayName": "cinema_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_captioned",
+              "displayName": "last_captioned",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "collect-result",
+      "name": "Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        400
+      ],
+      "parameters": {
+        "jsCode": "// Lowest on the canvas so it runs last: a sub-workflow returns the last node's output.\nconst { cacheRowsToSave, statusRowsToSave, ...result } = $('Assemble').first().json;\nreturn [{ json: result }];"
+      }
+    }
+  ],
+  "connections": {
+    "When called": {
+      "main": [
+        [
+          {
+            "node": "Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run manually": {
+      "main": [
+        [
+          {
+            "node": "Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Requests": {
+      "main": [
+        [
+          {
+            "node": "Fetch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch": {
+      "main": [
+        [
+          {
+            "node": "Retry list",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry list": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Fetch again",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read": {
+      "main": [
+        [
+          {
+            "node": "Everyman request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Load film cache",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Everyman request": {
+      "main": [
+        [
+          {
+            "node": "Everyman films",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load film cache": {
+      "main": [
+        [
+          {
+            "node": "Load status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load status": {
+      "main": [
+        [
+          {
+            "node": "Plan lookups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan lookups": {
+      "main": [
+        [
+          {
+            "node": "Search requests",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Movie requests",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "OMDb requests",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Assemble",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search requests": {
+      "main": [
+        [
+          {
+            "node": "TMDB search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Movie requests": {
+      "main": [
+        [
+          {
+            "node": "TMDB movie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OMDb requests": {
+      "main": [
+        [
+          {
+            "node": "OMDb",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble": {
+      "main": [
+        [
+          {
+            "node": "Film rows",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Status rows",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Film rows": {
+      "main": [
+        [
+          {
+            "node": "Save films",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status rows": {
+      "main": [
+        [
+          {
+            "node": "Save status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

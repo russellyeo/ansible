@@ -53,6 +53,7 @@ n8n_workflows:
   - { name: ccfm-error, id: ccfmError0000001, publish: true }
   - { name: ccfm-sync, id: ccfmSync00000001, publish: true }
   - { name: ccfm-reminder, id: ccfmRemind000001, publish: true }
+  - { name: cinema-collect, id: cinemaCollect001, publish: true }
 
 # n8n credential IDs (from /home/credentials/<id>), created by hand in the UI.
 # Workflow import is skipped until both are set in group_vars.

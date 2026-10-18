@@ -19,6 +19,12 @@ test('reads the embedded listings', () => {
   assert.match(hope.bookingUrl, /^https:\/\/whatson\.bfi\.org\.uk\/imax\/Online\/default\.asp\?doWork::WScontent::loadArticle=Load/);
 });
 
+test('decodes HTML entities in titles', () => {
+  const list = readBfi(page, BFI);
+  assert.ok(list.every((s) => !s.title.includes('&nbsp;')));
+  assert.ok(list.some((s) => s.title === 'Godzilla Minus Zero'));
+});
+
 test('uses the configured kind', () => {
   const list = readBfi(page, { ...BFI, kind: 'by-language' });
   assert.ok(list.every((s) => s.kind === 'by-language'));
