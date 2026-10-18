@@ -16,6 +16,7 @@ const FREE_HOURS_DEFAULT = { weekdayBefore: '09:00', weekdayFrom: '17:00' };
 const EVERYMAN_DAYS_AHEAD = 60;
 const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const SHORT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const SHOWTIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 
 class ReaderError extends Error {
   constructor(cinemaKey, message) {

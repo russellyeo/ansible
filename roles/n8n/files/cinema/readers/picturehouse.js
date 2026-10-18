@@ -4,7 +4,6 @@
 
 const PH_CAPTIONED = 'HOHSub';
 const PH_SUBTITLED = 'Sub Cinema';
-const SHOWTIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 
 function readPicturehouse(text, cinema) {
   let data;
