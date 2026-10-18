@@ -13,3 +13,14 @@ docker_daemon_start_delay: 15
 # Gap between "package started" and "socket accepting connections".
 docker_daemon_ready_retries: 12
 docker_daemon_ready_delay: 5
+
+# Boot-time recovery script, run by a DSM Task Scheduler "Boot-up" task.
+# Kept on a data volume (hidden by the @ prefix) so DSM updates don't wipe it.
+docker_daemon_script_directory: "/volume3/@scripts"
+docker_daemon_boot_script: "{{ docker_daemon_script_directory }}/docker-boot-recover.sh"
+
+# Seconds to wait for DSM's own start attempt before stepping in.
+docker_daemon_boot_grace: 300
+docker_daemon_boot_attempts: 3
+docker_daemon_boot_ready_timeout: 120
+docker_daemon_boot_retry_delay: 30

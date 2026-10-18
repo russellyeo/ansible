@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+# Bring the Docker daemon up after a reboot, without needing an Ansible run.
+#
+# DSM starts Container Manager at boot, but its start script only waits a few
+# seconds for dockerd to become ready. On a slow boot it gives up and never
+# retries, leaving every container down. The containers themselves have
+# restart policies, so all that's needed is a working daemon.
+#
+# Run as root from a DSM Task Scheduler "Boot-up" task. Logs go to syslog
+# under the tag "docker-boot-recover".
+
+set -u
+
+DOCKER="{{ synology_docker_bin }}"
+SYNOPKG="{{ synopkg_bin }}"
+PACKAGE="{{ container_manager_package }}"
+SERVICE="{{ dockerd_service }}"
+
+GRACE={{ docker_daemon_boot_grace }}
+ATTEMPTS={{ docker_daemon_boot_attempts }}
+READY_TIMEOUT={{ docker_daemon_boot_ready_timeout }}
+RETRY_DELAY={{ docker_daemon_boot_retry_delay }}
+POLL=5
+
+log() {
+  logger -t docker-boot-recover "$*"
+  echo "$(date '+%F %T') $*"
+}
+
+docker_up() {
+  timeout 15 "$DOCKER" info >/dev/null 2>&1
+}
+
+# Poll until the daemon answers or $1 seconds pass.
+wait_for_docker() {
+  local deadline=$((SECONDS + $1))
+  while ((SECONDS < deadline)); do
+    docker_up && return 0
+    sleep "$POLL"
+  done
+  return 1
+}
+
+exec 9>/var/lock/docker-boot-recover.lock
+if ! flock -n 9; then
+  log "Another instance is already running"
+  exit 0
+fi
+
+# Let DSM's own start attempt finish before interfering with it.
+if wait_for_docker "$GRACE"; then
+  log "Docker daemon is running, nothing to do"
+  exit 0
+fi
+
+for ((attempt = 1; attempt <= ATTEMPTS; attempt++)); do
+  log "Docker daemon not responding, starting $PACKAGE (attempt $attempt/$ATTEMPTS)"
+  systemctl reset-failed "$SERVICE" 2>/dev/null || true
+  "$SYNOPKG" start "$PACKAGE"
+
+  if wait_for_docker "$READY_TIMEOUT"; then
+    log "Docker daemon recovered on attempt $attempt"
+    exit 0
+  fi
+  sleep "$RETRY_DELAY"
+done
+
+log "Docker daemon still down after $ATTEMPTS attempts. Investigate with: journalctl -u $SERVICE --no-pager -n 50"
+exit 1
