@@ -26,6 +26,9 @@
       "name": "Fetch page",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
       "position": [250, 100],
       "parameters": {
         "url": "<< ccfm_page_url >>",
@@ -39,6 +42,9 @@
       "name": "List events",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
       "position": [500, 100],
       "parameters": {
         "url": "https://www.googleapis.com/calendar/v3/calendars/<< ccfm_calendar_id | urlencode >>/events",
@@ -77,6 +83,9 @@
       "name": "Apply calendar op",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
       "position": [1250, 0],
       "parameters": {
         "method": "={{ $json.method }}",
@@ -103,6 +112,9 @@
       "name": "Email changes",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
       "position": [1250, 200],
       "parameters": {
         "sendTo": "<< ccfm_email_to >>",

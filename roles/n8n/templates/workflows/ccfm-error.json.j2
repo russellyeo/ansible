@@ -17,6 +17,9 @@
       "name": "Email failure",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
       "position": [250, 0],
       "parameters": {
         "sendTo": "<< ccfm_email_to >>",
