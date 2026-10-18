@@ -8,12 +8,15 @@
   docker_container:
     name: flaresolverr
     image: ghcr.io/flaresolverr/flaresolverr:latest
-    state: absent
+    state: "{{ docker_state }}"
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"
     volumes:
       - "{{ config_directory }}/flaresolverr:/config"
+    networks:
+      # n8n reaches it as http://flaresolverr:8191 (cinema-collect, BFI IMAX).
+      - name: "{{ docker_network }}"
     ports:
       - "{{ host_port }}:8191"
     dns_servers:

@@ -13,6 +13,39 @@ ccfm_photos:
 # Overridable to force a fetch failure when testing the error workflow.
 ccfm_page_url: "https://www.weareccfm.com/our-markets/alexandra-palace/"
 
+# Cinemas for the subtitled screenings workflows (files/cinema). A new branch
+# of a supported chain (picturehouse, everyman, bfi) is one entry; chain_id
+# is the chain's own cinema ID. BFI's kind is `captioned`, or `by-language`
+# to send its foreign-language films to the digest's subtitled section.
+cinemas:
+  - key: ph-crouch-end
+    name: Picturehouse Crouch End
+    chain: picturehouse
+    chain_id: "024"
+    address: 165 Tottenham Lane, London N8 9BY
+    map_url: https://www.google.com/maps/search/?api=1&query=Crouch%20End%20Picturehouse%2C%20165%20Tottenham%20Lane%2C%20London%20N8%209BY
+  - key: ph-finsbury-park
+    name: Picturehouse Finsbury Park
+    chain: picturehouse
+    chain_id: "029"
+    address: 17 City North Place, London N4 3FU
+    map_url: https://www.google.com/maps/search/?api=1&query=Finsbury%20Park%20Picturehouse%2C%2017%20City%20North%20Place%2C%20London%20N4%203FU
+  - key: everyman-muswell-hill
+    name: Everyman Muswell Hill
+    chain: everyman
+    chain_id: X06SN
+    address: Fortis Green Road, London N10 3HP
+    map_url: https://www.google.com/maps/search/?api=1&query=Everyman%20Muswell%20Hill%2C%20Fortis%20Green%20Road%2C%20London%20N10%203HP
+  - key: bfi-imax
+    name: BFI IMAX
+    chain: bfi
+    kind: captioned
+    address: 1 Charlie Chaplin Walk, London SE1 8XR
+    map_url: https://www.google.com/maps/search/?api=1&query=BFI%20IMAX%2C%201%20Charlie%20Chaplin%20Walk%2C%20London%20SE1%208XR
+
+# Weekday screenings count only if they start before or at/after these.
+cinema_free_hours: { weekdayBefore: "09:00", weekdayFrom: "17:00" }
+
 # Import order matters: the error workflow must exist before the others
 # reference it. `id` matches the template's top-level id; `publish` makes the
 # workflow's triggers live. n8n 2.x only calls a published error workflow.
