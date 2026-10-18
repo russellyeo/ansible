@@ -7,9 +7,10 @@ const wanted = screenings
   .filter((w) => classify(w.screening, w.film) === 'captioned' && fitsFreeHours(w.screening.start, FREE_HOURS));
 const now = $now.setZone('Europe/London').toFormat("yyyy-MM-dd'T'HH:mm");
 const events = $('List events').first().json.items || [];
-const plan = planSync({ wanted, events, okCinemaKeys, now });
+const readCinemaKeys = [...new Set(screenings.map((s) => s.cinemaKey))];
+const plan = planSync({ wanted, events, okCinemaKeys, readCinemaKeys, now });
 const executionUrl = `${N8N_URL}/workflow/${$workflow.id}/executions/${$execution.id}`;
-const alert = errors.length || plan.capped.length ? buildAlert({ errors, capped: plan.capped, cinemas: CINEMAS, executionUrl }) : null;
+const alert = errors.length || plan.capped.length ? buildAlert({ errors, capped: plan.capped, held: plan.held, cinemas: CINEMAS, executionUrl }) : null;
 return [
   {
     json: {

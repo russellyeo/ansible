@@ -65,8 +65,9 @@ function isStale(event, body) {
   );
 }
 
-// wanted: [{screening, film, cinema}]
-function planSync({ wanted, events, okCinemaKeys, now }) {
+// wanted: [{screening, film, cinema}]; readCinemaKeys: cinemas whose listing
+// had any screenings at all (any kind, any time).
+function planSync({ wanted, events, okCinemaKeys, readCinemaKeys = [], now }) {
   // Extra copies of a screening (from a retried insert) are always deleted,
   // past ones included; the first copy is the one kept.
   const ours = new Map();
@@ -100,20 +101,25 @@ function planSync({ wanted, events, okCinemaKeys, now }) {
   for (const [id, { event, cinemaKey }] of ours) {
     if (seen.has(id) || !okCinemaKeys.includes(cinemaKey)) continue;
     if (!vanished.has(cinemaKey)) vanished.set(cinemaKey, []);
-    vanished.get(cinemaKey).push({ eventId: event.id, cinemaKey });
+    vanished.get(cinemaKey).push({ eventId: event.id, cinemaKey, summary: event.summary, start: localStart(event) });
   }
   // Hold back a cinema's removals when too many go at once, or when every
-  // one of its events would go: at a few captioned screenings per cinema, a
-  // reader that quietly finds nothing would otherwise empty it unnoticed.
+  // one of its events would go and its listing came back empty: a reader
+  // that quietly finds nothing would otherwise empty it unnoticed. A cinema
+  // whose listing still has other screenings loses its last event normally.
   const ourCount = new Map();
   for (const { cinemaKey } of ours.values()) ourCount.set(cinemaKey, (ourCount.get(cinemaKey) || 0) + 1);
   const remove = [];
   const capped = [];
+  const held = [];
   for (const [cinemaKey, list] of vanished) {
-    if (list.length > MAX_REMOVALS_PER_CINEMA || list.length === ourCount.get(cinemaKey)) capped.push(cinemaKey);
-    else remove.push(...list);
+    const emptied = list.length === ourCount.get(cinemaKey) && !readCinemaKeys.includes(cinemaKey);
+    if (list.length > MAX_REMOVALS_PER_CINEMA || emptied) {
+      capped.push(cinemaKey);
+      held.push(...list.map(({ summary, start }) => ({ cinemaKey, summary, start })));
+    } else remove.push(...list.map(({ eventId }) => ({ eventId, cinemaKey })));
   }
-  return { create, update, remove, duplicates, capped };
+  return { create, update, remove, duplicates, capped, held };
 }
 
 function calendarOps(plan) {

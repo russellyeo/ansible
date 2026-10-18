@@ -79,12 +79,22 @@ test('removes vanished screenings', () => {
   assert.deepEqual(plan.capped, []);
 });
 
-test('a cinema that suddenly has nothing wanted keeps its events', () => {
+test('a cinema whose listing comes back empty keeps its events', () => {
   // e.g. a renamed captioned flag: the read succeeds but finds nothing.
   const gone = screening('ph-crouch-end', 'p9', '2026-10-22T20:00');
-  const plan = planSync({ wanted: [], events: [ev('e9', gone)], okCinemaKeys: ['ph-crouch-end'], now: NOW });
+  const plan = planSync({ wanted: [], events: [ev('e9', gone)], okCinemaKeys: ['ph-crouch-end'], readCinemaKeys: [], now: NOW });
   assert.deepEqual(plan.remove, []);
   assert.deepEqual(plan.capped, ['ph-crouch-end']);
+  assert.deepEqual(plan.held, [{ cinemaKey: 'ph-crouch-end', summary: '🎬 Verity – Picturehouse Crouch End', start: '2026-10-22T20:00' }]);
+});
+
+test("a cinema's only screening is removed when its listing still has others", () => {
+  // Cancelled, no longer captioned, or moved into work hours.
+  const gone = screening('ph-crouch-end', 'p9', '2026-10-22T20:00');
+  const plan = planSync({ wanted: [], events: [ev('e9', gone)], okCinemaKeys: ['ph-crouch-end'], readCinemaKeys: ['ph-crouch-end'], now: NOW });
+  assert.deepEqual(plan.remove.map((r) => r.eventId), ['e9']);
+  assert.deepEqual(plan.capped, []);
+  assert.deepEqual(plan.held, []);
 });
 
 test('ignores past events and events it did not create', () => {
@@ -106,8 +116,10 @@ test('caps removals per cinema', () => {
   const ph = [1, 2, 3, 4].map((n) => ev(`p${n}`, screening('ph-crouch-end', `p${n}`, `2026-10-2${n}T20:00`)));
   const em = [1, 2].map((n) => ev(`m${n}`, screening('everyman-muswell-hill', `m${n}`, `2026-10-2${n}T20:15`)));
   const emKept = screening('everyman-muswell-hill', 'm9', '2026-10-29T20:15');
-  const plan = planSync({ wanted: [want(emKept)], events: [...ph, ...em, ev('m9', emKept)], okCinemaKeys: ['ph-crouch-end', 'everyman-muswell-hill'], now: NOW });
+  const keys = ['ph-crouch-end', 'everyman-muswell-hill'];
+  const plan = planSync({ wanted: [want(emKept)], events: [...ph, ...em, ev('m9', emKept)], okCinemaKeys: keys, readCinemaKeys: keys, now: NOW });
   assert.deepEqual(plan.capped, ['ph-crouch-end']);
+  assert.equal(plan.held.length, 4);
   assert.deepEqual(plan.remove.map((r) => r.eventId).sort(), ['m1', 'm2']);
 });
 
@@ -127,7 +139,7 @@ test('deletes duplicate copies of a screening, past ones too, whatever the cap',
 
 test('calendar ops', () => {
   const s = screening('ph-crouch-end', 'p3', '2026-10-24T20:00');
-  const ops = calendarOps({ create: [want(s)], update: [{ eventId: 'e/2', wanted: want(s) }], remove: [{ eventId: 'e3' }], duplicates: [], capped: [] });
+  const ops = calendarOps({ create: [want(s)], update: [{ eventId: 'e/2', wanted: want(s) }], remove: [{ eventId: 'e3' }], duplicates: [], capped: [], held: [] });
   assert.deepEqual(ops.map((o) => [o.method, o.path]), [['POST', '/events'], ['PUT', '/events/e%2F2'], ['DELETE', '/events/e3']]);
   assert.equal(ops[0].body.summary, '🎬 Verity – Picturehouse Crouch End');
   assert.equal(ops[2].body, null);

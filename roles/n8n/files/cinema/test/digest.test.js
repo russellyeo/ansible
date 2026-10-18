@@ -185,15 +185,19 @@ test('status updates', () => {
   assert.deepEqual(fresh, [{ cinema_key: 'ph-crouch-end', last_captioned: TODAY }]);
 });
 
-test('alert lists errors and capped cinemas', () => {
+test('alert lists errors and capped cinemas with their held events', () => {
   const a = buildAlert({
     errors: [{ cinemaKey: 'bfi-imax', message: 'bfi-imax: FlareSolverr failed: Timeout' }],
     capped: ['ph-crouch-end'],
+    held: [
+      { cinemaKey: 'ph-crouch-end', summary: '🎬 Verity – Picturehouse Crouch End', start: '2026-10-22T20:00' },
+      { cinemaKey: 'ph-crouch-end', summary: '🎬 Hope – Picturehouse Crouch End', start: '2026-10-24T18:30' },
+    ],
     cinemas: [...CINEMAS, { key: 'bfi-imax', name: 'BFI IMAX' }],
     executionUrl: 'https://n8n.example/workflow/w/executions/9',
   });
   assert.equal(a.subject, 'Cinema sync: 2 problem(s)');
   assert.match(a.text, /BFI IMAX: bfi-imax: FlareSolverr failed: Timeout/);
-  assert.match(a.text, /Picturehouse Crouch End: too many screenings vanished at once \(more than 3, or all of them\); nothing deleted\./);
+  assert.match(a.text, /Picturehouse Crouch End: 2 screenings vanished at once \(more than 3, or its listing came back empty\); nothing deleted: 🎬 Verity – Picturehouse Crouch End \(Thu 22 Oct 20:00\); 🎬 Hope – Picturehouse Crouch End \(Sat 24 Oct 18:30\)\. Check its reader, or delete these by hand if they really were cancelled\./);
   assert.match(a.html, /href="https:\/\/n8n\.example\/workflow\/w\/executions\/9"/);
 });

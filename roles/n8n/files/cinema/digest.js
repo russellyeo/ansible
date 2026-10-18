@@ -189,13 +189,17 @@ function statusUpdates({ screenings, okCinemaKeys, statusRows, today }) {
     .map((key) => ({ cinema_key: key, last_captioned: today }));
 }
 
-function buildAlert({ errors, capped, cinemas, executionUrl }) {
+function buildAlert({ errors, capped, held = [], cinemas, executionUrl }) {
   const lines = [
     ...errors.map((e) => `${cinemaName(cinemas, e.cinemaKey)}: ${e.message}`),
-    ...capped.map(
-      (key) =>
-        `${cinemaName(cinemas, key)}: too many screenings vanished at once (more than ${MAX_REMOVALS_PER_CINEMA}, or all of them); nothing deleted. Check its reader, or delete the events by hand if they really were cancelled.`,
-    ),
+    ...capped.map((key) => {
+      const events = held.filter((h) => h.cinemaKey === key);
+      const list = events.map((h) => `${h.summary} (${formatDay(h.start)} ${formatTime(h.start)})`).join('; ');
+      return (
+        `${cinemaName(cinemas, key)}: ${plural(events.length, 'screening')} vanished at once (more than ${MAX_REMOVALS_PER_CINEMA}, or its listing came back empty); ` +
+        `nothing deleted${list ? `: ${list}` : ''}. Check its reader, or delete these by hand if they really were cancelled.`
+      );
+    }),
   ];
   const subject = `Cinema sync: ${lines.length} problem(s)`;
   return {
