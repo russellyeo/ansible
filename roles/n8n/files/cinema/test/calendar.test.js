@@ -35,11 +35,12 @@ test('event body', () => {
   assert.deepEqual(body.start, { dateTime: '2026-10-25T23:30:00', timeZone: 'Europe/London' });
   assert.deepEqual(body.end, { dateTime: '2026-10-26T01:24:00', timeZone: 'Europe/London' });
   assert.deepEqual(body.extendedProperties.private, { cinemaManaged: 'true', cinemaKey: 'everyman-muswell-hill', cinemaSourceId: 'em1' });
-  assert.match(body.description, /^Book: https:\/\/book\.example\/em1$/m);
-  assert.match(body.description, /^IMDb 6\.8 · Rotten Tomatoes 71%$/m);
-  assert.match(body.description, /^Trailer: https:\/\/www\.youtube\.com\/watch\?v=k$/m);
-  assert.match(body.description, /^Map: https:\/\/maps\.example\/mh$/m);
-  assert.match(body.description, /Managed by the n8n cinema-sync workflow; manual edits are overwritten\.$/);
+  assert.equal(
+    body.description,
+    '<a href="https://book.example/em1"><b>🎟 Book tickets</b></a> · <a href="https://www.youtube.com/watch?v=k">▶ Trailer</a> · <a href="https://maps.example/mh">📍 Map</a>' +
+      '<br><br>A ghostwriter finds chilling notes.' +
+      '<br><br><i>Managed by the n8n cinema-sync workflow; manual edits are overwritten.</i>',
+  );
 });
 
 test('event body without film info uses a two-hour slot and skips empty lines', () => {
@@ -47,6 +48,15 @@ test('event body without film info uses a two-hour slot and skips empty lines', 
   const body = eventBody(s, { ...FILM, runtimeMin: null, imdbRating: null, rottenTomatoes: null, trailerUrl: null, synopsis: null }, CINEMAS['ph-crouch-end']);
   assert.equal(body.end.dateTime, '2026-10-22T22:00:00');
   assert.doesNotMatch(body.description, /IMDb|Rotten|Trailer|null|undefined/);
+  assert.match(body.description, /^<a href="https:\/\/book\.example\/p1"><b>🎟 Book tickets<\/b><\/a> · <a href="https:\/\/maps\.example\/ce">📍 Map<\/a><br><br><i>/);
+});
+
+test('event body escapes links and text and keeps the full synopsis', () => {
+  const long = `${'Tom & Jerry <3. '.repeat(30)}End.`;
+  const s = { ...screening('ph-crouch-end', 'p1', '2026-10-22T20:00'), bookingUrl: 'https://book.example/?a=1&b=2' };
+  const body = eventBody(s, { ...FILM, synopsis: long }, CINEMAS['ph-crouch-end']);
+  assert.match(body.description, /href="https:\/\/book\.example\/\?a=1&amp;b=2"/);
+  assert.ok(body.description.includes(long.replace(/&/g, '&amp;').replace(/</g, '&lt;')));
 });
 
 test('creates, updates and keeps', () => {

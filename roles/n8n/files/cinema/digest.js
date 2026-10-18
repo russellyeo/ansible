@@ -7,15 +7,6 @@ const RT_FRESH_ICON = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b
 const RT_ROTTEN_ICON = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Rotten_Tomatoes_rotten.svg/60px-Rotten_Tomatoes_rotten.svg.png';
 const RT_FRESH_FROM = 60;
 
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
 function cinemaName(cinemas, key) {
   const c = cinemas.find((x) => x.key === key);
   return c ? c.name : key;

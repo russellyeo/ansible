@@ -4,7 +4,6 @@
 
 const MAX_REMOVALS_PER_CINEMA = 3;
 const DEFAULT_RUNTIME_MIN = 120;
-const SYNOPSIS_CHARS = 200;
 
 // Wall-clock arithmetic on 'YYYY-MM-DDTHH:MM' (no time zone involved).
 function addMinutes(start, minutes) {
@@ -15,31 +14,29 @@ function addMinutes(start, minutes) {
   return d.toISOString().slice(0, 16);
 }
 
-function truncate(text, max) {
-  if (!text || text.length <= max) return text;
-  return `${text.slice(0, max - 1).trimEnd()}…`;
-}
-
-function ratingsLine(film) {
-  const parts = [];
-  if (film.imdbRating) parts.push(`IMDb ${film.imdbRating}`);
-  if (film.rottenTomatoes) parts.push(`Rotten Tomatoes ${film.rottenTomatoes}`);
-  return parts.join(' · ');
+// Google Calendar shows a little HTML in descriptions: links, <b>, <i>, <br>.
+function eventDescription(screening, film, cinema) {
+  const link = (url, text) => `<a href="${escapeHtml(url)}">${text}</a>`;
+  const links = [
+    screening.bookingUrl && link(screening.bookingUrl, '<b>🎟 Book tickets</b>'),
+    film.trailerUrl && link(film.trailerUrl, '▶ Trailer'),
+    cinema.map_url && link(cinema.map_url, '📍 Map'),
+  ].filter(Boolean);
+  return [
+    links.join(' · '),
+    film.synopsis && escapeHtml(film.synopsis),
+    '<i>Managed by the n8n cinema-sync workflow; manual edits are overwritten.</i>',
+  ]
+    .filter(Boolean)
+    .join('<br><br>');
 }
 
 function eventBody(screening, film, cinema) {
-  const lines = [
-    screening.bookingUrl && `Book: ${screening.bookingUrl}`,
-    ratingsLine(film),
-    film.trailerUrl && `Trailer: ${film.trailerUrl}`,
-    truncate(film.synopsis, SYNOPSIS_CHARS),
-    cinema.map_url && `Map: ${cinema.map_url}`,
-  ].filter(Boolean);
   const end = addMinutes(screening.start, film.runtimeMin || screening.runtimeMin || DEFAULT_RUNTIME_MIN);
   return {
     summary: `🎬 ${film.title} – ${cinema.name}`,
     location: `${cinema.name}, ${cinema.address}`,
-    description: [...lines, '', 'Managed by the n8n cinema-sync workflow; manual edits are overwritten.'].join('\n'),
+    description: eventDescription(screening, film, cinema),
     start: { dateTime: `${screening.start}:00`, timeZone: 'Europe/London' },
     end: { dateTime: `${end}:00`, timeZone: 'Europe/London' },
     extendedProperties: {
