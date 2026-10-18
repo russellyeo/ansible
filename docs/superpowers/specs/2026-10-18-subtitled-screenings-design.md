@@ -111,6 +111,19 @@ numbers; zero for one cinema in a fortnight is normal.
 - Every listing on this page is captioned ("descriptive subtitles of
   non-dialogue audio"). Each entry: title, `Sunday 25 October 2026 16:15`,
   venue, and a Buy link. No images or synopsis, so TMDB matters most here.
+- (Found while planning.) The page embeds its listings as JS arrays,
+  `searchNames : [...]` (98 column names) and `searchResults : [[...], ...]`,
+  which parse as JSON. Each row has a GUID `id` (stable screening identity),
+  `description` (title), `start_date` (`Sunday 25 October 2026 16:15`),
+  `keywords` (`English subtitles,IMAX (with laser)`) and `additional_info`
+  (the relative Buy link, under `https://whatson.bfi.org.uk/imax/Online/`).
+  Read these instead of the visible HTML.
+- (Found while planning.) The films listed on 18 Oct were all
+  foreign-language (Hope, Godzilla Minus Zero, Pan's Labyrinth), and the
+  rows only say "English subtitles". Whether they are true deaf/HoH
+  subtitles is unclear, so BFI screenings are classified per cinema config
+  (`kind: captioned` by default; `by-language` would use TMDB's original
+  language).
 
 ## Components
 
@@ -180,10 +193,8 @@ numbers; zero for one cinema in a fortnight is normal.
 - Location: cinema address. Description: booking link, ratings, trailer
   link, one-line synopsis, map link.
 - Identity: private extended properties holding the cinema key and the
-  chain's screening ID. BFI has no screening ID in the page, so its key is
-  normalised title plus start time, or an ID from the Buy link if it carries
-  one (my call). A BFI time change then becomes delete plus create, which is
-  fine. The sync only touches its own future events.
+  chain's screening ID (BFI: the row GUID). The sync only touches its own
+  future events.
 - Screenings that vanish are deleted, but only for cinemas that read
   successfully this run. Changed details are updated silently.
 - Safety cap, as in CCFM (my call): if more than 3 future events for one
