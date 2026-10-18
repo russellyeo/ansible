@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Never edit `vars/vault.yml`. The owner adds `vault_tmdb_api_key` (TMDB "API Read Access Token"), `vault_omdb_api_key` and `vault_cinema_calendar_id` by hand. Ask before any deploy that needs them.
+- Never edit `vars/vault.yml`. The owner adds `vault_tmdb_api_read_access_token` (TMDB "API Read Access Token"; `vault_tmdb_api_key` also exists but is unused), `vault_omdb_api_key` and `vault_cinema_calendar_id` by hand. Ask before any deploy that needs them.
 - Never stage `roles/docker-daemon/*` (unrelated work in progress). Stage files by explicit path; never `git add -A` / `-a`.
 - Ansible runs: always `< /dev/null`; use `--tags n8n` or `--tags flaresolverr`, never `--tags container` (it hits every role).
 - Timezone everywhere: `Europe/London`. All cinema times are local wall-clock strings `YYYY-MM-DDTHH:MM`.
@@ -284,7 +284,7 @@ Write the grouping test body from its comment (minimal screenings with only `tit
 
 **Files:**
 - Modify: `roles/n8n/defaults/main.yml`. Add `cinemas`, `cinema_free_hours`, and three `n8n_workflows` entries after `ccfm-reminder`, in this order: `{ name: cinema-collect, id: cinemaCollect001, publish: true }`, `{ name: cinema-sync, id: cinemaSync000001, publish: true }`, `{ name: cinema-digest, id: cinemaDigest0001, publish: true }`.
-- Modify: `vars/main.yml`. Add `cinema_calendar_id: "{{ vault_cinema_calendar_id }}"`, `cinema_email_to: "{{ vault_ccfm_email_to }}"`, `tmdb_api_key: "{{ vault_tmdb_api_key }}"` and `omdb_api_key: "{{ vault_omdb_api_key }}"` after the `ccfm_*` lines.
+- Modify: `vars/main.yml`. Add `cinema_calendar_id: "{{ vault_cinema_calendar_id }}"`, `cinema_email_to: "{{ vault_ccfm_email_to }}"`, `tmdb_api_key: "{{ vault_tmdb_api_read_access_token }}"` and `omdb_api_key: "{{ vault_omdb_api_key }}"` after the `ccfm_*` lines.
 - Modify: `roles/flaresolverr/tasks/container.yml`. Add `networks: [{ name: "{{ docker_network }}" }]`, matching the n8n container's form. The uncommitted `state: "{{ docker_state }}"` change is already there; commit it with this task.
 - Create: `roles/n8n/templates/credentials.json.j2`. Create: `roles/n8n/tasks/credentials.yml`, imported in `tasks/main.yml` before `workflows.yml`.
 
