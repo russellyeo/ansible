@@ -120,7 +120,7 @@ function plural(n, word) {
 }
 
 function hoursNote(hours) {
-  return `Weekday screenings are only included if they start before ${hours.weekdayBefore} or from ${hours.weekdayFrom}.`;
+  return `Weekday screenings are only included from ${hours.weekdayFrom}.`;
 }
 
 function problemLines(errors, notes, cinemas) {
@@ -146,7 +146,7 @@ function buildDigest({ today, screenings, films, cinemas, errors, notes, hours =
   const html = [
     '<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#222;max-width:600px">',
     `<p style="color:#666;font-size:13px;margin:0 0 12px">${escapeHtml(summary)}</p>`,
-    heading('Subtitled (Deaf/HoH)'),
+    heading('Subtitled'),
     captioned.length ? captioned.map((g) => captionedBlock(g, cinemas)).join('') : '<p>No subtitled screenings in the next two weeks.</p>',
     subtitled.length ? heading('Foreign-language, English subtitles') + `<ul style="padding-left:18px">${subtitled.map((g) => subtitledItem(g, cinemas)).join('')}</ul>` : '',
     problems.length
@@ -164,7 +164,7 @@ function buildDigest({ today, screenings, films, cinemas, errors, notes, hours =
   const text = [
     summary,
     '',
-    'SUBTITLED (DEAF/HOH)',
+    'SUBTITLED',
     captioned.length ? captioned.map(textBlock).join('\n\n') : 'No subtitled screenings in the next two weeks.',
     ...(subtitled.length ? ['', 'FOREIGN-LANGUAGE, ENGLISH SUBTITLES', ...subtitled.map((g) => `${g.film.title}: ${subtitledDays(g.screenings, cinemas)}`)] : []),
     ...(problems.length ? ['', ...problems.map((p) => `! ${p}`)] : []),

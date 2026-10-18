@@ -97,13 +97,15 @@ test('no heading in the body; summary counts films and cinemas', () => {
 
 test('section names', () => {
   const d = digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00')]);
-  assert.match(d.html, />Subtitled \(Deaf\/HoH\)</);
+  assert.match(d.html, />Subtitled</);
+  assert.doesNotMatch(d.html, /Deaf\/HoH/);
   assert.doesNotMatch(d.html, /Captioned/);
 });
 
 test('footer notes the hours filter and has no calendar link', () => {
   const d = digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00')], {}, { hours: { weekdayBefore: '09:00', weekdayFrom: '17:30' } });
-  assert.match(d.html, /Weekday screenings are only included if they start before 09:00 or from 17:30\./);
+  assert.match(d.html, /Weekday screenings are only included from 17:30\./);
+  assert.doesNotMatch(d.html, /before/);
   assert.doesNotMatch(d.html, /calendar/i);
 });
 
