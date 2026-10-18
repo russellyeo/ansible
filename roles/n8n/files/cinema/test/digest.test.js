@@ -138,6 +138,6 @@ test('alert lists errors and capped cinemas', () => {
   });
   assert.equal(a.subject, 'Cinema sync: 2 problem(s)');
   assert.match(a.text, /BFI IMAX: bfi-imax: FlareSolverr failed: Timeout/);
-  assert.match(a.text, /Over 3 screenings vanished from Picturehouse Crouch End; nothing deleted\./);
+  assert.match(a.text, /Picturehouse Crouch End: too many screenings vanished at once \(more than 3, or all of them\); nothing deleted\./);
   assert.match(a.html, /href="https:\/\/n8n\.example\/workflow\/w\/executions\/9"/);
 });

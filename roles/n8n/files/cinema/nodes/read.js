@@ -1,12 +1,14 @@
 // ---- cinema-collect "Read" node ----
 const READERS = { picturehouse: readPicturehouse, everyman: readEverymanSchedule, bfi: readBfi };
-const responses = $('Fetch').all();
-const retried = $('Fetch again').isExecuted ? $('Fetch again').all() : [];
-const retriedByKey = new Map($('Retry list').isExecuted ? $('Retry list').all().map((r, i) => [r.json.key, retried[i]]) : []);
+const requests = $('Requests').all();
+const responses = pairResponses($('Fetch').all(), requests.length);
+const retryList = $('Retry list').isExecuted ? $('Retry list').all() : [];
+const retried = $('Fetch again').isExecuted ? pairResponses($('Fetch again').all(), retryList.length) : [];
+const retriedByKey = new Map(retryList.map((r, i) => [r.json.key, retried[i]]));
 const screenings = [];
 const errors = [];
 const okCinemaKeys = [];
-$('Requests').all().forEach((item, i) => {
+requests.forEach((item, i) => {
   const { cinema } = item.json;
   const response = [responses[i], retriedByKey.get(cinema.key)].find(itemOk);
   if (!response) {

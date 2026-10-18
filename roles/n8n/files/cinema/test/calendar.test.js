@@ -63,8 +63,18 @@ test('creates, updates and keeps', () => {
 
 test('removes vanished screenings', () => {
   const gone = screening('ph-crouch-end', 'p9', '2026-10-22T20:00');
-  const plan = planSync({ wanted: [], events: [ev('e9', gone)], okCinemaKeys: ['ph-crouch-end'], now: NOW });
+  const still = screening('ph-crouch-end', 'p8', '2026-10-23T20:00');
+  const plan = planSync({ wanted: [want(still)], events: [ev('e9', gone), ev('e8', still)], okCinemaKeys: ['ph-crouch-end'], now: NOW });
   assert.deepEqual(plan.remove.map((r) => r.eventId), ['e9']);
+  assert.deepEqual(plan.capped, []);
+});
+
+test('a cinema that suddenly has nothing wanted keeps its events', () => {
+  // e.g. a renamed captioned flag: the read succeeds but finds nothing.
+  const gone = screening('ph-crouch-end', 'p9', '2026-10-22T20:00');
+  const plan = planSync({ wanted: [], events: [ev('e9', gone)], okCinemaKeys: ['ph-crouch-end'], now: NOW });
+  assert.deepEqual(plan.remove, []);
+  assert.deepEqual(plan.capped, ['ph-crouch-end']);
 });
 
 test('ignores past events and events it did not create', () => {
@@ -85,7 +95,8 @@ test('caps removals per cinema', () => {
   assert.equal(MAX_REMOVALS_PER_CINEMA, 3);
   const ph = [1, 2, 3, 4].map((n) => ev(`p${n}`, screening('ph-crouch-end', `p${n}`, `2026-10-2${n}T20:00`)));
   const em = [1, 2].map((n) => ev(`m${n}`, screening('everyman-muswell-hill', `m${n}`, `2026-10-2${n}T20:15`)));
-  const plan = planSync({ wanted: [], events: [...ph, ...em], okCinemaKeys: ['ph-crouch-end', 'everyman-muswell-hill'], now: NOW });
+  const emKept = screening('everyman-muswell-hill', 'm9', '2026-10-29T20:15');
+  const plan = planSync({ wanted: [want(emKept)], events: [...ph, ...em, ev('m9', emKept)], okCinemaKeys: ['ph-crouch-end', 'everyman-muswell-hill'], now: NOW });
   assert.deepEqual(plan.capped, ['ph-crouch-end']);
   assert.deepEqual(plan.remove.map((r) => r.eventId).sort(), ['m1', 'm2']);
 });

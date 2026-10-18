@@ -95,10 +95,15 @@ function planSync({ wanted, events, okCinemaKeys, now }) {
     if (!vanished.has(cinemaKey)) vanished.set(cinemaKey, []);
     vanished.get(cinemaKey).push({ eventId: event.id, cinemaKey });
   }
+  // Hold back a cinema's removals when too many go at once, or when every
+  // one of its events would go: at a few captioned screenings per cinema, a
+  // reader that quietly finds nothing would otherwise empty it unnoticed.
+  const ourCount = new Map();
+  for (const { cinemaKey } of ours.values()) ourCount.set(cinemaKey, (ourCount.get(cinemaKey) || 0) + 1);
   const remove = [];
   const capped = [];
   for (const [cinemaKey, list] of vanished) {
-    if (list.length > MAX_REMOVALS_PER_CINEMA) capped.push(cinemaKey);
+    if (list.length > MAX_REMOVALS_PER_CINEMA || list.length === ourCount.get(cinemaKey)) capped.push(cinemaKey);
     else remove.push(...list);
   }
   return { create, update, remove, capped };

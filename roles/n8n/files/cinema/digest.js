@@ -170,7 +170,10 @@ function statusUpdates({ screenings, okCinemaKeys, statusRows, today }) {
 function buildAlert({ errors, capped, cinemas, executionUrl }) {
   const lines = [
     ...errors.map((e) => `${cinemaName(cinemas, e.cinemaKey)}: ${e.message}`),
-    ...capped.map((key) => `Over ${MAX_REMOVALS_PER_CINEMA} screenings vanished from ${cinemaName(cinemas, key)}; nothing deleted.`),
+    ...capped.map(
+      (key) =>
+        `${cinemaName(cinemas, key)}: too many screenings vanished at once (more than ${MAX_REMOVALS_PER_CINEMA}, or all of them); nothing deleted. Check its reader, or delete the events by hand if they really were cancelled.`,
+    ),
   ];
   const subject = `Cinema sync: ${lines.length} problem(s)`;
   return {

@@ -75,7 +75,7 @@ if they start before 09:00 or at/after 17:00 (`cinema_free_hours`).
 | Workflow | Trigger | Does |
 |---|---|---|
 | `Cinema: collect subtitled screenings` | Called by the other two (or "Run manually") | Fetches and reads every cinema, looks films up on TMDB/OMDb, returns `{screenings, films, errors, okCinemaKeys, statusRows}` |
-| `Cinema: sync Subtitled Cinema Screenings calendar` | Daily 07:00 | Creates, updates and deletes calendar events; emails an alert when a cinema can't be read or more than 3 of its screenings vanish at once |
+| `Cinema: sync Subtitled Cinema Screenings calendar` | Daily 07:00 | Creates, updates and deletes calendar events; emails an alert when a cinema can't be read, or holds back deletions when more than 3 (or all) of a cinema's screenings vanish at once |
 | `Cinema: Friday digest of subtitled screenings` | Fri 09:00 | Emails the next two weeks by film: captioned first, then foreign-language films with English subtitles |
 
 Logic lives in `files/cinema/` (`core.js`, `readers/*.js`, `films.js`,

@@ -23,13 +23,30 @@ function londonToday() {
   return $now.setZone('Europe/London').toISODate();
 }
 
+// One response per request, matched through pairedItem rather than position:
+// an HTTP node turns a JSON array answer into one item per element (or none
+// for []), which would shift every later response onto the wrong request.
+function pairResponses(responses, count) {
+  const byInput = Array.from({ length: count }, () => []);
+  for (const r of responses) {
+    const p = Array.isArray(r.pairedItem) ? r.pairedItem[0] : r.pairedItem;
+    const i = p && typeof p.item === 'number' ? p.item : -1;
+    if (i >= 0 && i < count) byInput[i].push(r);
+  }
+  return byInput.map((list) => {
+    if (list.length === 1) return list[0];
+    return { json: { error: list.length ? 'unexpected array response' : 'no response' } };
+  });
+}
+
 // Map of request key -> response json (undefined when that request failed),
 // pairing a request node's items with the HTTP node that sent them.
 function sideResults(requestNode, httpNode) {
   const results = new Map();
   if (!$(httpNode).isExecuted) return results;
-  const responses = $(httpNode).all();
-  $(requestNode).all().forEach((req, i) => results.set(req.json.key, itemOk(responses[i]) ? responses[i].json : undefined));
+  const requests = $(requestNode).all();
+  const responses = pairResponses($(httpNode).all(), requests.length);
+  requests.forEach((req, i) => results.set(req.json.key, itemOk(responses[i]) ? responses[i].json : undefined));
   return results;
 }
 
