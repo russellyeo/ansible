@@ -51,6 +51,12 @@ test('captioned films have image, trailer link, ratings and booking links', () =
   assert.match(d.html, /<a href="https:\/\/book\.example\/2026-10-25T20%3A15"[^>]*>20:15<\/a>/);
 });
 
+test('uses the configured free hours', () => {
+  const screenings = [s('ph-crouch-end', 'Early Evening', '2026-10-26T16:30')]; // Mon
+  assert.doesNotMatch(digest(screenings).html, /Early Evening/);
+  assert.match(digest(screenings, {}, { hours: { weekdayBefore: '09:00', weekdayFrom: '16:00' } }).html, /Early Evening/);
+});
+
 test('orders films by first screening', () => {
   const d = digest([s('ph-crouch-end', 'Later', '2026-10-30T20:00'), s('ph-crouch-end', 'Sooner', '2026-10-24T20:00')]);
   assert.ok(d.html.indexOf('Sooner') < d.html.indexOf('Later'));

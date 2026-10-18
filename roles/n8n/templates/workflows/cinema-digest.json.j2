@@ -1,0 +1,68 @@
+{%- set lib = 'const CINEMAS = ' ~ (cinemas | to_json) ~ ';\nconst FREE_HOURS = ' ~ (cinema_free_hours | to_json) ~ ';\nconst N8N_URL = ' ~ (n8n_tailnet_url | to_json) ~ ';\n'
+  ~ lookup('file', 'cinema/core.js') ~ '\n'
+  ~ lookup('file', 'cinema/readers/picturehouse.js') ~ '\n'
+  ~ lookup('file', 'cinema/readers/everyman.js') ~ '\n'
+  ~ lookup('file', 'cinema/readers/bfi.js') ~ '\n'
+  ~ lookup('file', 'cinema/films.js') ~ '\n'
+  ~ lookup('file', 'cinema/calendar.js') ~ '\n'
+  ~ lookup('file', 'cinema/digest.js') ~ '\n'
+  ~ lookup('file', 'cinema/nodes/common.js') ~ '\n' -%}
+{
+  "id": "cinemaDigest0001",
+  "name": "Cinema: Friday digest of subtitled screenings",
+  "active": true,
+  "settings": { "executionOrder": "v1", "availableInMCP": true, "timezone": "Europe/London", "errorWorkflow": "ccfmError0000001" },
+  "nodes": [
+    {
+      "id": "cdigest-schedule",
+      "name": "Fridays 09:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 9 * * 5" }] } }
+    },
+    {
+      "id": "cdigest-collect",
+      "name": "Collect",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [250, 0],
+      "parameters": {
+        "source": "database",
+        "workflowId": { "__rl": true, "mode": "id", "value": "cinemaCollect001" },
+        "options": { "waitForSubWorkflow": true }
+      }
+    },
+    {
+      "id": "cdigest-build",
+      "name": "Build digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 0],
+      "parameters": { "jsCode": << (lib ~ lookup('file', 'cinema/nodes/digest.js')) | to_json >> }
+    },
+    {
+      "id": "cdigest-send",
+      "name": "Send digest",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "position": [750, 0],
+      "parameters": {
+        "sendTo": "<< cinema_email_to >>",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": { "appendAttribution": false }
+      },
+      "credentials": { "gmailOAuth2": { "id": "<< n8n_gmail_credential_id >>", "name": "Gmail" } }
+    }
+  ],
+  "connections": {
+    "Fridays 09:00": { "main": [[{ "node": "Collect", "type": "main", "index": 0 }]] },
+    "Collect": { "main": [[{ "node": "Build digest", "type": "main", "index": 0 }]] },
+    "Build digest": { "main": [[{ "node": "Send digest", "type": "main", "index": 0 }]] }
+  }
+}

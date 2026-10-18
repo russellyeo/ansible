@@ -11,7 +11,12 @@ function errorText(item) {
   const err = item && item.json && item.json.error;
   if (!err) return 'no response';
   const text = typeof err === 'string' ? err : err.message || JSON.stringify(err);
-  return text.length > 200 ? `${text.slice(0, 200)}…` : text;
+  // n8n appends the response body ("502 - {...json...}"); keep the status and
+  // the body's title (Cloudflare's "Error 502: Bad gateway").
+  const title = /"title":"([^"]+)"/.exec(text);
+  const head = text.replace(/\s-\s[{<[][\s\S]*$/, '');
+  const short = title ? `${head} (${title[1]})` : head;
+  return short.length > 200 ? `${short.slice(0, 200)}…` : short;
 }
 
 function londonToday() {

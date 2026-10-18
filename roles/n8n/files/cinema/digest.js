@@ -109,9 +109,9 @@ function problemLines(errors, notes, cinemas) {
   return [...errors.map((e) => `Couldn't read ${cinemaName(cinemas, e.cinemaKey)}: ${e.message}`), ...notes];
 }
 
-function buildDigest({ today, screenings, films, cinemas, errors, notes }) {
+function buildDigest({ today, screenings, films, cinemas, errors, notes, hours = FREE_HOURS_DEFAULT }) {
   const { from, to } = digestWindow(today);
-  const inWindow = screenings.filter((s) => s.start.slice(0, 10) >= from && s.start.slice(0, 10) <= to && fitsFreeHours(s.start));
+  const inWindow = screenings.filter((s) => s.start.slice(0, 10) >= from && s.start.slice(0, 10) <= to && fitsFreeHours(s.start, hours));
   const groups = groupByFilm(inWindow).map((g) => ({ ...g, film: mergeFilm(g.screenings[0], films[g.filmKey] || null) }));
   const split = (kind) =>
     groups
