@@ -88,7 +88,7 @@ test('event body pins wall-clock time in Europe/London, even on clock-change day
   assert.deepEqual(body.start, { dateTime: '2026-10-25T10:00:00', timeZone: 'Europe/London' });
   assert.deepEqual(body.end, { dateTime: '2026-10-25T15:00:00', timeZone: 'Europe/London' });
   assert.deepEqual(body.extendedProperties, { private: { ccfmDate: '2026-10-25', ccfmLocation: 'campsbourne' } });
-  assert.match(body.description, /google\.com\/maps/);
+  assert.match(body.description, /Map: https:\/\/maps\.app\.goo\.gl\/5ZfuxMss3h45pvic9/);
 });
 
 test('calendar ops map the plan to REST calls', () => {

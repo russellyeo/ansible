@@ -33,7 +33,9 @@ test('reminder for an unchanged location', () => {
   assert.match(r.html, /<li><b>Where:<\/b> Campsbourne School<\/li>/);
   assert.match(r.html, /<li><b>When:<\/b> Sunday 18 October, 10:00–15:00<\/li>/);
   assert.match(r.html, /<li><b>Address:<\/b> Nightingale Lane, N8 7AF<\/li>/);
-  assert.match(r.html, /<li><b>Map:<\/b> <a href="https:\/\/[^"]+">Open in Google Maps<\/a><\/li>/);
+  assert.match(r.html, /<li><b>Map:<\/b> <a href="https:\/\/maps\.app\.goo\.gl\/5ZfuxMss3h45pvic9">Open in Google Maps<\/a><\/li>/);
+  assert.match(r.html, /<li><b>Schedule:<\/b> <a href="https:\/\/www\.weareccfm\.com\/our-markets\/alexandra-palace\/">Full schedule<\/a><\/li><\/ul>/);
+  assert.ok(r.html.indexOf('<ul>') < r.html.indexOf('<img'), 'bullet list comes before the photo');
   assert.doesNotMatch(r.html, /Moved/);
 });
 
@@ -63,4 +65,10 @@ test('reminder says nothing is listed when there is no event', () => {
 test('reminder escapes HTML in location details', () => {
   const r = buildReminder({ sunday: '2026-10-18', events: [ev('b', '2026-10-18', 'campsbourne')] });
   assert.doesNotMatch(r.html, /&(?![a-z]+;|#\d+;)/);
+});
+
+test('reminder links the park to its share link', () => {
+  const r = buildReminder({ sunday: '2026-10-25', events: [ev('b', '2026-10-25', 'park')] });
+  assert.match(r.html, /href="https:\/\/maps\.app\.goo\.gl\/g9RS7Mt1HzoGPf5B6"/);
+  assert.match(r.text, /Map: https:\/\/maps\.app\.goo\.gl\/g9RS7Mt1HzoGPf5B6/);
 });

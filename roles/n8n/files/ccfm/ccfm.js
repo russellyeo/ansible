@@ -12,11 +12,13 @@ const LOCATIONS = {
     heading: 'ALEXANDRA PALACE PARK LOCATION',
     name: 'Alexandra Palace Park',
     address: 'Muswell Hill (bottom) entrance, N10 3TG',
+    mapUrl: 'https://maps.app.goo.gl/g9RS7Mt1HzoGPf5B6',
   },
   campsbourne: {
     heading: 'CAMPSBOURNE SCHOOL LOCATION',
     name: 'Campsbourne School',
     address: 'Nightingale Lane, N8 7AF',
+    mapUrl: 'https://maps.app.goo.gl/5ZfuxMss3h45pvic9',
   },
 };
 
@@ -315,11 +317,11 @@ function buildReminder({ sunday, events }) {
     ['Map', `<a href="${escapeHtml(map)}">Open in Google Maps</a>`],
   ];
   if (moved) items.push(['📍 Moved', escapeHtml(`last week it was at ${locName(lastWeek)}`)]);
+  items.push(['Schedule', `<a href="${escapeHtml(CCFM_URL)}">Full schedule</a>`]);
   const html = [
     `<h2>${escapeHtml(NAME)}</h2>`,
-    `<img src="cid:${thisWeek}" alt="${escapeHtml(name)}" width="480" style="max-width:100%;height:auto;border-radius:8px">`,
     `<ul>${items.map(([label, value]) => `<li><b>${label}:</b> ${value}</li>`).join('')}</ul>`,
-    `<p><a href="${escapeHtml(CCFM_URL)}">Full schedule</a></p>`,
+    `<img src="cid:${thisWeek}" alt="${escapeHtml(name)}" width="480" style="max-width:100%;height:auto;border-radius:8px">`,
   ].join('\n');
 
   return {
