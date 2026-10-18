@@ -56,7 +56,7 @@ test('builds chain requests', () => {
   });
   const em = cinemaRequest({ key: 'everyman-muswell-hill', chain: 'everyman', chain_id: 'X06SN' }, '2026-10-18');
   assert.equal(em.method, 'GET');
-  assert.equal(em.body, '{}');
+  assert.equal(em.body, null); // Everyman's origin 502s on GET requests that carry a body
   assert.match(
     em.url,
     /schedule\?theaters=%7B%22id%22%3A%22X06SN%22%2C%22timeZone%22%3A%22Europe%2FLondon%22%7D&from=2026-10-18T00%3A00%3A00&to=2026-11-15T23%3A59%3A59/,

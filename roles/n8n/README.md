@@ -102,8 +102,9 @@ using TMDB's original language).
 
 A cinema that can't be fetched or read is retried once after 60 s, then
 reported in the alert and at the top of the digest; its calendar events are
-left alone. Everyman's API intermittently answers n8n with a Cloudflare 502,
-so expect the odd Everyman alert. If a cinema shows no captioned screenings
+left alone. GET and POST requests go through separate fetch nodes because
+Everyman's API answers a GET that carries a body (as n8n's shared HTTP node
+sends one) with a Cloudflare 502. If a cinema shows no captioned screenings
 for 4 weeks, the digest says its reader may need checking.
 
 ### Film info

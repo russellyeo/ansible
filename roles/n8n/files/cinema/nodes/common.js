@@ -39,15 +39,28 @@ function pairResponses(responses, count) {
   });
 }
 
-// Map of request key -> response json (undefined when that request failed),
-// pairing a request node's items with the HTTP node that sent them.
-function sideResults(requestNode, httpNode) {
-  const results = new Map();
-  if (!$(httpNode).isExecuted) return results;
+// Map of request key -> response item, pairing a request node's items with
+// the HTTP node that sent them. Empty when that branch didn't run.
+function sideItems(requestNode, httpNode) {
+  const items = new Map();
+  if (!$(requestNode).isExecuted || !$(httpNode).isExecuted) return items;
   const requests = $(requestNode).all();
   const responses = pairResponses($(httpNode).all(), requests.length);
-  requests.forEach((req, i) => results.set(req.json.key, itemOk(responses[i]) ? responses[i].json : undefined));
-  return results;
+  requests.forEach((req, i) => items.set(req.json.key, responses[i]));
+  return items;
+}
+
+// Map of request key -> response json (undefined when that request failed).
+function sideResults(requestNode, httpNode) {
+  return new Map([...sideItems(requestNode, httpNode)].map(([key, item]) => [key, itemOk(item) ? item.json : undefined]));
+}
+
+// Cinema fetches go through a POST node (JSON body) or a GET node (no body).
+const FIRST_PASS = [['POST requests', 'Fetch POST'], ['GET requests', 'Fetch GET']];
+const RETRY_PASS = [['Retry POST', 'Fetch again POST'], ['Retry GET', 'Fetch again GET']];
+
+function fetchItems(pass) {
+  return new Map(pass.flatMap(([requestNode, httpNode]) => [...sideItems(requestNode, httpNode)]));
 }
 
 // The response body as text: JSON responses arrive parsed, text ones in data.

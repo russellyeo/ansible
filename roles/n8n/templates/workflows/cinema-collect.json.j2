@@ -59,17 +59,30 @@
       }
     },
     {
-      "id": "collect-fetch",
-      "name": "Fetch",
+      "id": "collect-post-requests",
+      "name": "POST requests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -800
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ 'const METHOD = \'POST\';\n' ~ lookup('file', 'cinema/nodes/split.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-fetch-post",
+      "name": "Fetch POST",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "onError": "continueRegularOutput",
       "position": [
-        400,
-        0
+        600,
+        -800
       ],
       "parameters": {
-        "method": "={{ $json.request.method }}",
+        "method": "POST",
         "url": "={{ $json.request.url }}",
         "sendHeaders": true,
         "headerParameters": {
@@ -95,26 +108,71 @@
       }
     },
     {
-      "id": "collect-retry",
-      "name": "Retry list",
+      "id": "collect-get-requests",
+      "name": "GET requests",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        600,
-        -200
+        400,
+        -600
       ],
       "parameters": {
-        "jsCode": << (lib ~ lookup('file', 'cinema/nodes/retry.js')) | to_json >>
+        "jsCode": << (lib ~ 'const METHOD = \'GET\';\n' ~ lookup('file', 'cinema/nodes/split.js')) | to_json >>
       }
     },
     {
-      "id": "collect-wait",
-      "name": "Wait",
+      "id": "collect-fetch-get",
+      "name": "Fetch GET",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "onError": "continueRegularOutput",
+      "position": [
+        600,
+        -600
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.request.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 200000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "collect-retry-post",
+      "name": "Retry POST",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -400
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ 'const METHOD = \'POST\';\n' ~ lookup('file', 'cinema/nodes/retry.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-wait-post",
+      "name": "Wait POST",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        800,
-        -200
+        600,
+        -400
       ],
       "webhookId": "0d3f7c1e-5a2b-4c8d-9e6f-1a2b3c4d5e6f",
       "parameters": {
@@ -124,17 +182,17 @@
       }
     },
     {
-      "id": "collect-fetch-again",
-      "name": "Fetch again",
+      "id": "collect-fetch-again-post",
+      "name": "Fetch again POST",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "onError": "continueRegularOutput",
       "position": [
-        1000,
-        -200
+        800,
+        -400
       ],
       "parameters": {
-        "method": "={{ $json.request.method }}",
+        "method": "POST",
         "url": "={{ $json.request.url }}",
         "sendHeaders": true,
         "headerParameters": {
@@ -149,6 +207,67 @@
         "contentType": "json",
         "specifyBody": "json",
         "jsonBody": "={{ $json.request.body }}",
+        "options": {
+          "timeout": 200000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "collect-retry-get",
+      "name": "Retry GET",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -200
+      ],
+      "parameters": {
+        "jsCode": << (lib ~ 'const METHOD = \'GET\';\n' ~ lookup('file', 'cinema/nodes/retry.js')) | to_json >>
+      }
+    },
+    {
+      "id": "collect-wait-get",
+      "name": "Wait GET",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        600,
+        -200
+      ],
+      "webhookId": "7a1c2e3f-4b5d-4e6f-8a9b-0c1d2e3f4a5b",
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 60,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "collect-fetch-again-get",
+      "name": "Fetch again GET",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "onError": "continueRegularOutput",
+      "position": [
+        800,
+        -200
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.request.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"
+            }
+          ]
+        },
         "options": {
           "timeout": 200000,
           "response": {
@@ -628,18 +747,22 @@
       "main": [
         [
           {
-            "node": "Fetch",
+            "node": "POST requests",
             "type": "main",
             "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch": {
-      "main": [
-        [
+          },
           {
-            "node": "Retry list",
+            "node": "GET requests",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Retry POST",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Retry GET",
             "type": "main",
             "index": 0
           },
@@ -651,22 +774,66 @@
         ]
       ]
     },
-    "Retry list": {
+    "POST requests": {
       "main": [
         [
           {
-            "node": "Wait",
+            "node": "Fetch POST",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Wait": {
+    "Retry POST": {
       "main": [
         [
           {
-            "node": "Fetch again",
+            "node": "Wait POST",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait POST": {
+      "main": [
+        [
+          {
+            "node": "Fetch again POST",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET requests": {
+      "main": [
+        [
+          {
+            "node": "Fetch GET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry GET": {
+      "main": [
+        [
+          {
+            "node": "Wait GET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait GET": {
+      "main": [
+        [
+          {
+            "node": "Fetch again GET",
             "type": "main",
             "index": 0
           }

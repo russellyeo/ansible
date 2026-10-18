@@ -110,8 +110,9 @@ function formatRange(fromIso, toIso) {
   return `${f(fromIso)} – ${f(toIso)}`;
 }
 
-// Every request is sent with a JSON body (n8n's HTTP node mangles text
-// responses to raw-body requests); Picturehouse accepts JSON form input.
+// POSTs carry a JSON body (n8n's HTTP node mangles text responses to
+// raw-body requests; Picturehouse accepts JSON form input). GETs carry none:
+// Everyman's origin answers 502 to a GET with a body.
 function cinemaRequest(cinema, today) {
   switch (cinema.chain) {
     case 'picturehouse':
@@ -127,7 +128,7 @@ function cinemaRequest(cinema, today) {
       return {
         method: 'GET',
         url: `https://www.everymancinema.com/api/gatsby-source-boxofficeapi/schedule?theaters=${theaters}&from=${from}&to=${to}`,
-        body: '{}',
+        body: null,
       };
     }
     case 'bfi':
