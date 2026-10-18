@@ -70,11 +70,21 @@ function isStale(event, body) {
 
 // wanted: [{screening, film, cinema}]
 function planSync({ wanted, events, okCinemaKeys, now }) {
+  // Extra copies of a screening (from a retried insert) are always deleted,
+  // past ones included; the first copy is the one kept.
   const ours = new Map();
+  const seenIds = new Set();
+  const duplicates = [];
   for (const e of events) {
     const p = (e.extendedProperties && e.extendedProperties.private) || {};
-    if (p.cinemaManaged !== 'true' || localStart(e) < now) continue;
-    ours.set(screeningId(p.cinemaKey, p.cinemaSourceId), { event: e, cinemaKey: p.cinemaKey });
+    if (p.cinemaManaged !== 'true') continue;
+    const id = screeningId(p.cinemaKey, p.cinemaSourceId);
+    if (seenIds.has(id)) {
+      duplicates.push({ eventId: e.id, cinemaKey: p.cinemaKey });
+      continue;
+    }
+    seenIds.add(id);
+    if (localStart(e) >= now) ours.set(id, { event: e, cinemaKey: p.cinemaKey });
   }
 
   const create = [];
@@ -106,7 +116,7 @@ function planSync({ wanted, events, okCinemaKeys, now }) {
     if (list.length > MAX_REMOVALS_PER_CINEMA || list.length === ourCount.get(cinemaKey)) capped.push(cinemaKey);
     else remove.push(...list);
   }
-  return { create, update, remove, capped };
+  return { create, update, remove, duplicates, capped };
 }
 
 function calendarOps(plan) {
@@ -114,6 +124,6 @@ function calendarOps(plan) {
   return [
     ...plan.create.map((w) => ({ method: 'POST', path: '/events', body: body(w) })),
     ...plan.update.map((u) => ({ method: 'PUT', path: `/events/${encodeURIComponent(u.eventId)}`, body: body(u.wanted) })),
-    ...plan.remove.map((r) => ({ method: 'DELETE', path: `/events/${encodeURIComponent(r.eventId)}`, body: null })),
+    ...[...plan.remove, ...(plan.duplicates || [])].map((r) => ({ method: 'DELETE', path: `/events/${encodeURIComponent(r.eventId)}`, body: null })),
   ];
 }

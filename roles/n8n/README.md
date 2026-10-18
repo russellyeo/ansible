@@ -107,6 +107,11 @@ Everyman's API answers a GET that carries a body (as n8n's shared HTTP node
 sends one) with a Cloudflare 502. If a cinema shows no captioned screenings
 for 4 weeks, the digest says its reader may need checking.
 
+"Apply calendar op" doesn't retry: a node retry re-sends every op, so one
+rate-limited insert once left five copies of each event. A failed op is
+picked up by the next day's sync instead, and any extra copies of a
+screening (same `cinemaKey` and `cinemaSourceId`) are deleted.
+
 ### Film info
 
 TMDB (`TMDB` credential, the API Read Access Token) and OMDb (`OMDb`

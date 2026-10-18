@@ -90,9 +90,9 @@ test('no heading in the body; summary counts films and cinemas', () => {
   ]);
   assert.doesNotMatch(d.html, /<h2/);
   assert.doesNotMatch(d.html, /Subtitled Cinema Screenings:/);
-  assert.match(d.html, />2 subtitled movies at 2 cinemas</);
+  assert.match(d.html, />23 Oct – 5 Nov, 2 subtitled movies showing at 2 cinemas</);
   assert.doesNotMatch(d.html, /fit your hours/);
-  assert.match(digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00')]).html, />1 subtitled movie at 1 cinema</);
+  assert.match(digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00')]).html, />23 Oct – 5 Nov, 1 subtitled movie showing at 1 cinema</);
 });
 
 test('section names', () => {

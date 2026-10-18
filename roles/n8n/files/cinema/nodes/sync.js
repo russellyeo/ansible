@@ -15,7 +15,7 @@ return [
     json: {
       ops: calendarOps(plan),
       alert,
-      summary: { wanted: wanted.length, create: plan.create.length, update: plan.update.length, remove: plan.remove.length, capped: plan.capped, errors: errors.length },
+      summary: { wanted: wanted.length, create: plan.create.length, update: plan.update.length, remove: plan.remove.length, duplicates: plan.duplicates.length, capped: plan.capped, errors: errors.length },
     },
   },
 ];

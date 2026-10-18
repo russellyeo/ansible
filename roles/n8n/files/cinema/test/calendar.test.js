@@ -101,9 +101,23 @@ test('caps removals per cinema', () => {
   assert.deepEqual(plan.remove.map((r) => r.eventId).sort(), ['m1', 'm2']);
 });
 
+test('deletes duplicate copies of a screening, past ones too, whatever the cap', () => {
+  const s1 = screening('ph-crouch-end', 'p1', '2026-10-22T20:00');
+  const past = screening('ph-crouch-end', 'p0', '2026-10-18T06:00');
+  const copies = [1, 2, 3, 4, 5].map((n) => ev(`d${n}`, s1));
+  const plan = planSync({ wanted: [want(s1)], events: [...copies, ev('o1', past), ev('o2', past)], okCinemaKeys: [], now: NOW });
+  assert.deepEqual(plan.create, []);
+  assert.deepEqual(plan.update, []);
+  assert.deepEqual(plan.remove, []);
+  assert.deepEqual(plan.duplicates.map((r) => r.eventId), ['d2', 'd3', 'd4', 'd5', 'o2']);
+  assert.deepEqual(plan.capped, []);
+  const ops = calendarOps(plan);
+  assert.deepEqual(ops.map((o) => [o.method, o.path]), ['d2', 'd3', 'd4', 'd5', 'o2'].map((id) => ['DELETE', `/events/${id}`]));
+});
+
 test('calendar ops', () => {
   const s = screening('ph-crouch-end', 'p3', '2026-10-24T20:00');
-  const ops = calendarOps({ create: [want(s)], update: [{ eventId: 'e/2', wanted: want(s) }], remove: [{ eventId: 'e3' }], capped: [] });
+  const ops = calendarOps({ create: [want(s)], update: [{ eventId: 'e/2', wanted: want(s) }], remove: [{ eventId: 'e3' }], duplicates: [], capped: [] });
   assert.deepEqual(ops.map((o) => [o.method, o.path]), [['POST', '/events'], ['PUT', '/events/e%2F2'], ['DELETE', '/events/e3']]);
   assert.equal(ops[0].body.summary, '🎬 Verity – Picturehouse Crouch End');
   assert.equal(ops[2].body, null);

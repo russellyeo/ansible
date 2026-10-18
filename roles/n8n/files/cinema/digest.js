@@ -147,7 +147,7 @@ function buildDigest({ today, screenings, films, cinemas, errors, notes, hours =
   const subject = `🎬 ${DIGEST_NAME}: ${formatRange(from, to)}`;
 
   const cinemaCount = new Set(captioned.flatMap((g) => g.screenings.map((x) => x.cinemaKey))).size;
-  const summary = `${plural(captioned.length, 'subtitled movie')} at ${plural(cinemaCount, 'cinema')}`;
+  const summary = `${formatRange(from, to)}, ${plural(captioned.length, 'subtitled movie')} showing at ${plural(cinemaCount, 'cinema')}`;
 
   const html = [
     '<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#222;max-width:600px">',
