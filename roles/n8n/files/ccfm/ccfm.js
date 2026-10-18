@@ -30,6 +30,10 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 // "6TH SEPT 2026", "1st Nov. 2026", "8 NOVEMBER 2026"
 const DATE_RE = /\b(\d{1,2})(?:ST|ND|RD|TH)?\s+([A-Z]+)\.?,?\s+(\d{4})\b/gi;
 
+// Date-like text DATE_RE did not consume: "29TH NOV", "15/11/2026", the "1ST"
+// of "1ST & 8TH NOV 2026". Silently skipping it would drop a market.
+const LOOSE_DATE_RE = /\b\d{1,2}(?:ST|ND|RD|TH)\b|\b\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)|\b\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}\b/i;
+
 class ScheduleError extends Error {}
 
 function toIso(year, month, day) {
@@ -74,21 +78,33 @@ function htmlToText(html) {
 // delete the events of whichever location failed to parse.
 function parseSchedule(html, today) {
   const text = htmlToText(html).toUpperCase();
+  const lines = text.split('\n');
   const errors = [];
 
-  const headings = Object.entries(LOCATIONS).map(([key, loc]) => ({ key, at: text.indexOf(loc.heading) }));
-  for (const h of headings) {
-    if (h.at < 0) errors.push(`heading not found: ${LOCATIONS[h.key].heading}`);
+  // A heading counts only as a line of its own, so the phrase inside a
+  // sentence elsewhere cannot split the page at the wrong place.
+  const headings = [];
+  for (const [key, loc] of Object.entries(LOCATIONS)) {
+    const at = lines.flatMap((line, i) => (line === loc.heading ? [i] : []));
+    if (!at.length) errors.push(`heading not found: ${loc.heading}`);
+    else if (at.length > 1) errors.push(`heading appears ${at.length} times: ${loc.heading}`);
+    else headings.push({ key, at: at[0] });
   }
-  const found = headings.filter((h) => h.at >= 0).sort((a, b) => a.at - b.at);
+  const found = headings.sort((a, b) => a.at - b.at);
 
   const thisYear = Number(today.slice(0, 4));
   const seen = new Map();
   const markets = [];
 
   found.forEach((h, i) => {
-    const section = text.slice(h.at, i + 1 < found.length ? found[i + 1].at : undefined);
-    for (const [raw, dayText, monthText, yearText] of section.matchAll(DATE_RE)) {
+    const section = lines.slice(h.at + 1, i + 1 < found.length ? found[i + 1].at : undefined);
+    const matches = [];
+    for (const line of section) {
+      matches.push(...line.matchAll(DATE_RE));
+      if (LOOSE_DATE_RE.test(line.replace(DATE_RE, ' '))) errors.push(`unparsed date text: "${line}"`);
+    }
+    if (!matches.length) errors.push(`no dates under ${LOCATIONS[h.key].heading}`);
+    for (const [raw, dayText, monthText, yearText] of matches) {
       const month = MONTHS.indexOf(monthText.slice(0, 3)) + 1;
       if (month === 0) {
         errors.push(`unknown month in "${raw}"`);
@@ -121,11 +137,10 @@ function parseSchedule(html, today) {
     }
   });
 
-  if (!errors.length && !markets.length) errors.push('no dates found');
   if (errors.length) {
     const from = found.length ? found[0].at : 0;
     throw new ScheduleError(
-      `Could not parse ${CCFM_URL}:\n- ${errors.join('\n- ')}\n\nPage text:\n${text.slice(from, from + 3000)}`,
+      `Could not parse ${CCFM_URL}:\n- ${errors.join('\n- ')}\n\nPage text:\n${lines.slice(from).join('\n').slice(0, 3000)}`,
     );
   }
   return markets.sort((a, b) => a.date.localeCompare(b.date));

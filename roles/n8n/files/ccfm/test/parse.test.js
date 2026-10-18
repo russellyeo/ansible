@@ -86,9 +86,51 @@ test('fails on an implausible year', () => {
 });
 
 test('fails when no dates are found', () => {
-  throwsSchedule(() => parseSchedule(page(), TODAY), /no dates found/);
+  throwsSchedule(() => parseSchedule(page(), TODAY), /no dates under ALEXANDRA PALACE PARK LOCATION\n- no dates under CAMPSBOURNE/);
 });
 
 test('error message includes the page text for debugging', () => {
   throwsSchedule(() => parseSchedule(page({ park: ['7TH SEPT 2026'] }), TODAY), /CAMPSBOURNE SCHOOL LOCATION/);
+});
+
+// A section that parses short would let the sync delete the missing dates.
+test('fails when a location lists no dates', () => {
+  throwsSchedule(
+    () => parseSchedule(page({ park: ['Coming soon'], campsbourne: ['11TH OCT 2026'] }), TODAY),
+    /no dates under ALEXANDRA PALACE PARK LOCATION/,
+  );
+});
+
+test('fails on a date without a year', () => {
+  throwsSchedule(
+    () => parseSchedule(page({ park: ['1ST NOV 2026', '29TH NOV'], campsbourne: ['11TH OCT 2026'] }), TODAY),
+    /unparsed date text: "29TH NOV"/,
+  );
+});
+
+test('fails on a numeric date', () => {
+  throwsSchedule(
+    () => parseSchedule(page({ park: ['1ST NOV 2026', '15/11/2026'], campsbourne: ['11TH OCT 2026'] }), TODAY),
+    /unparsed date text: "15\/11\/2026"/,
+  );
+});
+
+test('fails on two days sharing one month', () => {
+  throwsSchedule(
+    () => parseSchedule(page({ park: ['1ST & 8TH NOV 2026'], campsbourne: ['11TH OCT 2026'] }), TODAY),
+    /unparsed date text: "1ST & 8TH NOV 2026"/,
+  );
+});
+
+// A heading phrase inside a sentence must not split the page there, or one
+// location's dates would be read as the other's.
+test('ignores a heading phrase inside other text', () => {
+  const html = page({ park: ['1ST NOV 2026'], campsbourne: ['8TH NOV 2026'] }).replace(
+    '<p>Every Sunday - 10 till 3</p>',
+    '<p>This week: Campsbourne School location, see below</p>',
+  );
+  assert.deepEqual(parseSchedule(html, TODAY), [
+    { date: '2026-11-01', location: 'park' },
+    { date: '2026-11-08', location: 'campsbourne' },
+  ]);
 });
