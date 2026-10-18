@@ -10,7 +10,8 @@ function itemOk(item) {
 function errorText(item) {
   const err = item && item.json && item.json.error;
   if (!err) return 'no response';
-  return typeof err === 'string' ? err : err.message || JSON.stringify(err);
+  const text = typeof err === 'string' ? err : err.message || JSON.stringify(err);
+  return text.length > 200 ? `${text.slice(0, 200)}…` : text;
 }
 
 function londonToday() {

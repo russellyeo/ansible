@@ -1,0 +1,139 @@
+{%- set lib = 'const CINEMAS = ' ~ (cinemas | to_json) ~ ';\nconst FREE_HOURS = ' ~ (cinema_free_hours | to_json) ~ ';\nconst N8N_URL = ' ~ (n8n_tailnet_url | to_json) ~ ';\n'
+  ~ lookup('file', 'cinema/core.js') ~ '\n'
+  ~ lookup('file', 'cinema/readers/picturehouse.js') ~ '\n'
+  ~ lookup('file', 'cinema/readers/everyman.js') ~ '\n'
+  ~ lookup('file', 'cinema/readers/bfi.js') ~ '\n'
+  ~ lookup('file', 'cinema/films.js') ~ '\n'
+  ~ lookup('file', 'cinema/calendar.js') ~ '\n'
+  ~ lookup('file', 'cinema/digest.js') ~ '\n'
+  ~ lookup('file', 'cinema/nodes/common.js') ~ '\n' -%}
+{
+  "id": "cinemaSync000001",
+  "name": "Cinema: sync Subtitled Cinema Screenings calendar",
+  "active": true,
+  "settings": { "executionOrder": "v1", "availableInMCP": true, "timezone": "Europe/London", "errorWorkflow": "ccfmError0000001" },
+  "nodes": [
+    {
+      "id": "csync-schedule",
+      "name": "Every day 07:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 7 * * *" }] } }
+    },
+    {
+      "id": "csync-collect",
+      "name": "Collect",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [250, 0],
+      "parameters": {
+        "source": "database",
+        "workflowId": { "__rl": true, "mode": "id", "value": "cinemaCollect001" },
+        "options": { "waitForSubWorkflow": true }
+      }
+    },
+    {
+      "id": "csync-list",
+      "name": "List events",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "position": [500, 0],
+      "parameters": {
+        "url": "https://www.googleapis.com/calendar/v3/calendars/<< cinema_calendar_id | urlencode >>/events",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleCalendarOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "timeMin", "value": "={{ $now.setZone('Europe/London').startOf('day').toISO() }}" },
+            { "name": "singleEvents", "value": "true" },
+            { "name": "maxResults", "value": "2500" },
+            { "name": "privateExtendedProperty", "value": "cinemaManaged=true" }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": { "googleCalendarOAuth2Api": { "id": "<< n8n_google_calendar_credential_id >>", "name": "Google Calendar" } }
+    },
+    {
+      "id": "csync-plan",
+      "name": "Plan",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 0],
+      "parameters": { "jsCode": << (lib ~ lookup('file', 'cinema/nodes/sync.js')) | to_json >> }
+    },
+    {
+      "id": "csync-split",
+      "name": "One item per calendar op",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 100],
+      "parameters": { "jsCode": "return $input.first().json.ops.map((op) => ({ json: op }));" }
+    },
+    {
+      "id": "csync-apply",
+      "name": "Apply calendar op",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "position": [1250, 100],
+      "parameters": {
+        "method": "={{ $json.method }}",
+        "url": "=https://www.googleapis.com/calendar/v3/calendars/<< cinema_calendar_id | urlencode >>{{ $json.path }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleCalendarOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body ?? {}) }}",
+        "options": { "batching": { "batch": { "batchSize": 1, "batchInterval": 400 } } }
+      },
+      "credentials": { "googleCalendarOAuth2Api": { "id": "<< n8n_google_calendar_credential_id >>", "name": "Google Calendar" } }
+    },
+    {
+      "id": "csync-alert-filter",
+      "name": "Only if problems",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, -100],
+      "parameters": { "jsCode": "const { alert } = $input.first().json;\nreturn alert ? [{ json: alert }] : [];" }
+    },
+    {
+      "id": "csync-alert",
+      "name": "Email alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "position": [1250, -100],
+      "parameters": {
+        "sendTo": "<< cinema_email_to >>",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": { "appendAttribution": false }
+      },
+      "credentials": { "gmailOAuth2": { "id": "<< n8n_gmail_credential_id >>", "name": "Gmail" } }
+    }
+  ],
+  "connections": {
+    "Every day 07:00": { "main": [[{ "node": "Collect", "type": "main", "index": 0 }]] },
+    "Collect": { "main": [[{ "node": "List events", "type": "main", "index": 0 }]] },
+    "List events": { "main": [[{ "node": "Plan", "type": "main", "index": 0 }]] },
+    "Plan": {
+      "main": [[
+        { "node": "One item per calendar op", "type": "main", "index": 0 },
+        { "node": "Only if problems", "type": "main", "index": 0 }
+      ]]
+    },
+    "One item per calendar op": { "main": [[{ "node": "Apply calendar op", "type": "main", "index": 0 }]] },
+    "Only if problems": { "main": [[{ "node": "Email alert", "type": "main", "index": 0 }]] }
+  }
+}

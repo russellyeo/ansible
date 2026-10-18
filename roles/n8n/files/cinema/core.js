@@ -13,7 +13,9 @@ const BFI_URL =
   'https://whatson.bfi.org.uk/imax/Online/default.asp?BOparam::WScontent::loadArticle::permalink=screenings-subtitles&BOparam::WScontent::loadArticle::context_id=';
 const FLARESOLVERR_URL = 'http://flaresolverr:8191/v1';
 const FREE_HOURS_DEFAULT = { weekdayBefore: '09:00', weekdayFrom: '17:00' };
-const EVERYMAN_DAYS_AHEAD = 60;
+// Everyman reveals new films weekly; a shorter range is also a lighter request
+// (its origin intermittently 502s).
+const EVERYMAN_DAYS_AHEAD = 28;
 const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const SHORT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const SHOWTIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;

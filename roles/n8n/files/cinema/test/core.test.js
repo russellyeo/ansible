@@ -59,7 +59,7 @@ test('builds chain requests', () => {
   assert.equal(em.body, '{}');
   assert.match(
     em.url,
-    /schedule\?theaters=%7B%22id%22%3A%22X06SN%22%2C%22timeZone%22%3A%22Europe%2FLondon%22%7D&from=2026-10-18T00%3A00%3A00&to=2026-12-17T23%3A59%3A59/,
+    /schedule\?theaters=%7B%22id%22%3A%22X06SN%22%2C%22timeZone%22%3A%22Europe%2FLondon%22%7D&from=2026-10-18T00%3A00%3A00&to=2026-11-15T23%3A59%3A59/,
   );
   const bfi = cinemaRequest({ key: 'bfi-imax', chain: 'bfi' }, '2026-10-18');
   assert.equal(bfi.url, 'http://flaresolverr:8191/v1');
