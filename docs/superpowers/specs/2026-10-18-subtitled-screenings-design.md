@@ -175,7 +175,7 @@ numbers; zero for one cinema in a fortnight is normal.
 
 ## Calendar events
 
-- Title `🎬 <film> (CC) – <cinema name>` (my call). Start at the screening
+- Title `🎬 <film> – <cinema name>` (agreed; the calendar only holds captioned screenings). Start at the screening
   time, end after the TMDB/cinema runtime (fallback: 2 hours).
 - Location: cinema address. Description: booking link, ratings, trailer
   link, one-line synopsis, map link.
