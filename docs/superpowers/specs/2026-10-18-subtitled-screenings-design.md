@@ -46,9 +46,9 @@ Jinja templates rendered and imported by Ansible, Google credentials shared.
 |---|-------|----------|
 | D1 | Free hours | Weekends any time. Weekdays only if the screening **starts** before 09:00 or at/after 17:00. Configurable. |
 | D2 | Calendar contents | Captioned (deaf/HoH) screenings that fit D1, every cinema, as far ahead as each site lists. |
-| D3 | Calendar | A new dedicated Google calendar, "Subtitled screenings", created by hand; ID in the vault. |
+| D3 | Calendar | A new dedicated Google calendar named "Subtitled Cinema Screenings", created by hand; ID in the vault. |
 | D4 | Digest timing | Fridays 09:00 Europe/London. Window: that Friday through the Thursday 13 days later. Only screenings fitting D1. |
-| D5 | Digest layout | "Layout B" (mockup chosen): per film, a wide image, title linked to the trailer, IMDb and Rotten Tomatoes ratings, runtime, short synopsis, then a small table of cinema / day / times with each time a booking link. Films ordered by their first screening. |
+| D5 | Digest layout | Subject and heading `🎬 Subtitled Cinema Screenings: <Fri date> – <Thu date>`. "Layout B" (mockup chosen): per film, a wide image, title linked to the trailer, IMDb and Rotten Tomatoes ratings, runtime, short synopsis, then a small table of cinema / day / times with each time a booking link. Films ordered by their first screening. |
 | D6 | Foreign-language section | Bottom of the digest, compact: one line per film with title, ratings, cinemas and dates. No images. |
 | D7 | Film info | TMDB for image, synopsis, runtime, trailer, IMDb ID and original language. OMDb (by IMDb ID) for the IMDb rating and Rotten Tomatoes score. Missing values are simply left out. Unmatched films fall back to whatever the cinema provides. |
 | D8 | Empty weeks | The digest still sends and says there are no captioned screenings. |
