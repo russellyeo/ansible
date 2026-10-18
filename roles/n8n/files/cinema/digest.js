@@ -1,10 +1,11 @@
 // The Friday digest and the sync's alert email.
 
 const DIGEST_NAME = 'Subtitled Cinema Screenings';
-const CALENDAR_URL = 'https://calendar.google.com/calendar/u/0/r';
 const STALE_DAYS = 28;
-const DIGEST_SYNOPSIS_CHARS = 300;
 const ACCENT = '#8a2be2';
+const RT_FRESH_ICON = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Rotten_Tomatoes.svg/60px-Rotten_Tomatoes.svg.png';
+const RT_ROTTEN_ICON = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Rotten_Tomatoes_rotten.svg/60px-Rotten_Tomatoes_rotten.svg.png';
+const RT_FRESH_FROM = 60;
 
 function escapeHtml(value) {
   return String(value)
@@ -37,9 +38,25 @@ function metaLine(film) {
     .join(' · ');
 }
 
-function titleHtml(film, style = '') {
+// Ratings, runtime and the trailer link under a film's title. The IMDb badge
+// is HTML so it shows even with images off; the tomato is Wikimedia's PNG.
+function metaHtml(film) {
+  const num = (v) => `<b style="color:#222">${escapeHtml(v)}</b>`;
+  const imdb = '<span style="background:#f5c518;color:#000;font-weight:800;font-size:11px;border-radius:3px;padding:0 4px">IMDb</span>';
+  const fresh = parseInt(film.rottenTomatoes, 10) >= RT_FRESH_FROM;
+  const tomato = `<img src="${fresh ? RT_FRESH_ICON : RT_ROTTEN_ICON}" alt="${fresh ? 'Fresh' : 'Rotten'}" width="14" height="14" style="vertical-align:-2px">`;
+  const parts = [
+    film.imdbRating && `${imdb} ${num(film.imdbRating)}`,
+    film.rottenTomatoes && `${tomato} ${num(film.rottenTomatoes)}`,
+    runtimeText(film.runtimeMin) && `⏱ ${runtimeText(film.runtimeMin)}`,
+    film.trailerUrl && `<a href="${escapeHtml(film.trailerUrl)}" style="color:#0b57d0;font-weight:600;text-decoration:none">▶ Watch trailer</a>`,
+  ].filter(Boolean);
+  return parts.length ? `<p style="color:#666;font-size:13px;margin:0 0 6px">${parts.join('&nbsp;&nbsp;&nbsp;')}</p>` : '';
+}
+
+function titleHtml(film) {
   const t = escapeHtml(film.title);
-  return film.trailerUrl ? `<a href="${escapeHtml(film.trailerUrl)}" style="color:#111;${style}">${t}</a>` : t;
+  return film.imdbId ? `<a href="https://www.imdb.com/title/${escapeHtml(film.imdbId)}/" style="color:#111">${t}</a>` : t;
 }
 
 // One row per cinema and day, times as booking links.
@@ -60,7 +77,6 @@ function timeLink(s) {
 
 function captionedBlock(group, cinemas) {
   const { film, screenings } = group;
-  const meta = metaLine(film);
   const rows = scheduleRows(screenings, cinemas)
     .map(
       (r) =>
@@ -70,11 +86,11 @@ function captionedBlock(group, cinemas) {
     )
     .join('');
   return [
-    '<div style="margin:0 0 26px">',
+    '<div style="margin:0 0 18px;border:1px solid #e6e6ec;border-radius:10px;padding:12px;background:#fafafc">',
     film.image ? `<img src="${escapeHtml(film.image)}" alt="${escapeHtml(film.title)}" width="600" style="width:100%;max-width:600px;height:auto;border-radius:6px;display:block">` : '',
     `<p style="font-size:18px;font-weight:700;margin:10px 0 2px">${titleHtml(film)}</p>`,
-    meta ? `<p style="color:#666;font-size:13px;margin:0 0 4px">${escapeHtml(meta)}</p>` : '',
-    film.synopsis ? `<p style="color:#444;font-size:13px;margin:0 0 6px">${escapeHtml(truncate(film.synopsis, DIGEST_SYNOPSIS_CHARS))}</p>` : '',
+    metaHtml(film),
+    film.synopsis ? `<p style="color:#444;font-size:13px;margin:0 0 6px">${escapeHtml(film.synopsis)}</p>` : '',
     `<table style="border-collapse:collapse;width:100%;font-size:13px">${rows}</table>`,
     '</div>',
   ].join('');
@@ -105,6 +121,14 @@ function heading(text) {
   return `<h3 style="font-size:15px;text-transform:uppercase;letter-spacing:.05em;color:${ACCENT};border-bottom:2px solid ${ACCENT};padding-bottom:4px;margin:22px 0 12px">${escapeHtml(text)}</h3>`;
 }
 
+function plural(n, word) {
+  return `${n} ${word}${n === 1 ? '' : 's'}`;
+}
+
+function hoursNote(hours) {
+  return `Weekday screenings are only included if they start before ${hours.weekdayBefore} or from ${hours.weekdayFrom}.`;
+}
+
 function problemLines(errors, notes, cinemas) {
   return [...errors.map((e) => `Couldn't read ${cinemaName(cinemas, e.cinemaKey)}: ${e.message}`), ...notes];
 }
@@ -122,17 +146,19 @@ function buildDigest({ today, screenings, films, cinemas, errors, notes, hours =
   const problems = problemLines(errors, notes, cinemas);
   const subject = `🎬 ${DIGEST_NAME}: ${formatRange(from, to)}`;
 
+  const cinemaCount = new Set(captioned.flatMap((g) => g.screenings.map((x) => x.cinemaKey))).size;
+  const summary = `${plural(captioned.length, 'subtitled movie')} at ${plural(cinemaCount, 'cinema')}`;
+
   const html = [
     '<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:#222;max-width:600px">',
-    `<h2 style="margin:0 0 4px">${escapeHtml(subject)}</h2>`,
-    `<p style="color:#666;font-size:13px;margin:0 0 12px">${captioned.length} captioned film(s) that fit your hours</p>`,
-    problems.length
-      ? `<div style="background:#fff4e5;border:1px solid #f0c36d;border-radius:6px;padding:8px 12px;margin:0 0 12px;font-size:13px">${problems.map((p) => `<p style="margin:2px 0">⚠️ ${escapeHtml(p)}</p>`).join('')}</div>`
-      : '',
-    heading('Captioned (deaf/HoH)'),
-    captioned.length ? captioned.map((g) => captionedBlock(g, cinemas)).join('') : '<p>No captioned screenings in the next two weeks.</p>',
+    `<p style="color:#666;font-size:13px;margin:0 0 12px">${escapeHtml(summary)}</p>`,
+    heading('Subtitled (Deaf/HoH)'),
+    captioned.length ? captioned.map((g) => captionedBlock(g, cinemas)).join('') : '<p>No subtitled screenings in the next two weeks.</p>',
     subtitled.length ? heading('Foreign-language, English subtitles') + `<ul style="padding-left:18px">${subtitled.map((g) => subtitledItem(g, cinemas)).join('')}</ul>` : '',
-    `<p style="color:#888;font-size:12px;margin-top:20px;border-top:1px solid #eee;padding-top:10px">Also in your <a href="${CALENDAR_URL}">${DIGEST_NAME} calendar</a>. Sources: ${escapeHtml(cinemas.map((c) => c.name).join(', '))}.</p>`,
+    problems.length
+      ? `<div style="background:#fff4e5;border:1px solid #f0c36d;border-radius:6px;padding:8px 12px;margin:20px 0 0;font-size:13px">${problems.map((p) => `<p style="margin:2px 0">⚠️ ${escapeHtml(p)}</p>`).join('')}</div>`
+      : '',
+    `<p style="color:#888;font-size:12px;margin-top:20px;border-top:1px solid #eee;padding-top:10px">${escapeHtml(hoursNote(hours))} Sources: ${escapeHtml(cinemas.map((c) => c.name).join(', '))}.</p>`,
     '</div>',
   ].join('\n');
 
@@ -142,12 +168,14 @@ function buildDigest({ today, screenings, films, cinemas, errors, notes, hours =
     return [g.film.title + (meta ? ` (${meta})` : ''), ...rows].join('\n');
   };
   const text = [
-    subject,
-    ...problems.map((p) => `! ${p}`),
+    summary,
     '',
-    'CAPTIONED (DEAF/HOH)',
-    captioned.length ? captioned.map(textBlock).join('\n\n') : 'No captioned screenings in the next two weeks.',
+    'SUBTITLED (DEAF/HOH)',
+    captioned.length ? captioned.map(textBlock).join('\n\n') : 'No subtitled screenings in the next two weeks.',
     ...(subtitled.length ? ['', 'FOREIGN-LANGUAGE, ENGLISH SUBTITLES', ...subtitled.map((g) => `${g.film.title}: ${subtitledDays(g.screenings, cinemas)}`)] : []),
+    ...(problems.length ? ['', ...problems.map((p) => `! ${p}`)] : []),
+    '',
+    hoursNote(hours),
   ].join('\n');
 
   return { subject, html, text };

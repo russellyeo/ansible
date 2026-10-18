@@ -41,14 +41,70 @@ test('drops work-hours screenings', () => {
   assert.doesNotMatch(d.html, /10:45/);
 });
 
-test('captioned films have image, trailer link, ratings and booking links', () => {
+test('captioned films have image, IMDb link, meta line with trailer, and booking links', () => {
   const d = digest([s('everyman-muswell-hill', 'Verity', '2026-10-25T20:15')], { 'verity|': film('Verity') });
   assert.match(d.html, /<img src="https:\/\/img\.example\/Verity\.jpg"/);
-  assert.match(d.html, /<a href="https:\/\/www\.youtube\.com\/watch\?v=Verity"[^>]*>Verity<\/a>/);
-  assert.match(d.html, /IMDb 6\.8 · RT 71% · 1h 54m/);
+  assert.doesNotMatch(d.html, /<a [^>]*>\s*<img/); // the image is not a link
+  assert.match(d.html, /<a href="https:\/\/www\.imdb\.com\/title\/tt1\/"[^>]*>Verity<\/a>/);
+  const meta = d.html.slice(d.html.indexOf('>IMDb<'), d.html.indexOf('Verity synopsis.'));
+  assert.match(meta, /71%/);
+  assert.match(meta, /1h 54m/);
+  assert.match(meta, /<a href="https:\/\/www\.youtube\.com\/watch\?v=Verity"[^>]*>▶ Watch trailer<\/a>/);
   assert.match(d.html, /Everyman Muswell Hill/);
   assert.match(d.html, /Sun 25 Oct/);
   assert.match(d.html, /<a href="https:\/\/book\.example\/2026-10-25T20%3A15"[^>]*>20:15<\/a>/);
+});
+
+test('meta line: IMDb badge, fresh or rotten tomato, bold numbers', () => {
+  const html = (extra) => digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00')], { 'verity|': film('Verity', extra) }).html;
+  const fresh = html({});
+  assert.match(fresh, /background:#f5c518[^>]*>IMDb<\/span> <b[^>]*>6\.8<\/b>/);
+  assert.match(fresh, /<img src="[^"]*Rotten_Tomatoes\.svg[^"]*" alt="Fresh"[^>]*> <b[^>]*>71%<\/b>/);
+  assert.match(fresh, /⏱ 1h 54m/);
+  assert.match(html({ rottenTomatoes: '59%' }), /<img src="[^"]*Rotten_Tomatoes_rotten\.svg[^"]*" alt="Rotten"/);
+  assert.doesNotMatch(html({ imdbRating: null, rottenTomatoes: null }), /f5c518|Rotten_Tomatoes/);
+});
+
+test('each film is a card', () => {
+  const d = digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00'), s('ph-crouch-end', 'Hope', '2026-10-25T20:00')]);
+  assert.equal((d.html.match(/<div style="[^"]*border:1px solid #e6e6ec;border-radius:10px/g) || []).length, 2);
+});
+
+test('title without an IMDb ID is plain text', () => {
+  const d = digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00')], { 'verity|': film('Verity', { imdbId: null }) });
+  assert.doesNotMatch(d.html, /<a [^>]*>Verity<\/a>/);
+});
+
+test('full synopsis', () => {
+  const long = `${'A long synopsis. '.repeat(40)}The end.`;
+  const d = digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00')], { 'verity|': film('Verity', { synopsis: long }) });
+  assert.ok(d.html.includes(long));
+});
+
+test('no heading in the body; summary counts films and cinemas', () => {
+  const d = digest([
+    s('ph-crouch-end', 'Verity', '2026-10-24T20:00'),
+    s('ph-finsbury-park', 'Verity', '2026-10-25T20:00'),
+    s('ph-crouch-end', 'Hope', '2026-10-26T20:00'),
+    s('ph-finsbury-park', 'Fatherland', '2026-10-24T18:10', 'subtitled'),
+  ]);
+  assert.doesNotMatch(d.html, /<h2/);
+  assert.doesNotMatch(d.html, /Subtitled Cinema Screenings:/);
+  assert.match(d.html, />2 subtitled movies at 2 cinemas</);
+  assert.doesNotMatch(d.html, /fit your hours/);
+  assert.match(digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00')]).html, />1 subtitled movie at 1 cinema</);
+});
+
+test('section names', () => {
+  const d = digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00')]);
+  assert.match(d.html, />Subtitled \(Deaf\/HoH\)</);
+  assert.doesNotMatch(d.html, /Captioned/);
+});
+
+test('footer notes the hours filter and has no calendar link', () => {
+  const d = digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00')], {}, { hours: { weekdayBefore: '09:00', weekdayFrom: '17:30' } });
+  assert.match(d.html, /Weekday screenings are only included if they start before 09:00 or from 17:30\./);
+  assert.doesNotMatch(d.html, /calendar/i);
 });
 
 test('uses the configured free hours', () => {
@@ -89,11 +145,11 @@ test('escapes titles', () => {
 
 test('empty week message', () => {
   const d = digest([s('ph-crouch-end', 'Fatherland', '2026-10-24T18:10', 'subtitled')]);
-  assert.match(d.html, /No captioned screenings in the next two weeks\./);
+  assert.match(d.html, /No subtitled screenings in the next two weeks\./);
   assert.match(d.html, /Fatherland/);
 });
 
-test('error and stale notes at top', () => {
+test('error and stale notes at the bottom', () => {
   const d = digest([s('ph-crouch-end', 'Verity', '2026-10-24T20:00')], {}, {
     errors: [{ cinemaKey: 'ph-finsbury-park', message: 'ph-finsbury-park: response is not JSON' }],
     notes: ['No captioned screenings from Everyman Muswell Hill for 4 weeks; its reader may need checking.'],
@@ -101,7 +157,7 @@ test('error and stale notes at top', () => {
   const note = d.html.indexOf("Couldn&#39;t read Picturehouse Finsbury Park");
   assert.ok(note >= 0);
   assert.ok(d.html.indexOf('for 4 weeks') >= 0);
-  assert.ok(note < d.html.indexOf('Verity'));
+  assert.ok(note > d.html.indexOf('Verity'));
   assert.match(d.text, /Couldn't read Picturehouse Finsbury Park/);
 });
 
