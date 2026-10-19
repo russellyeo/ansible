@@ -25,8 +25,9 @@
     privileged: true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    ports:
-      - "{{ docker_socket_proxy_port }}:2375"
+    # No published port: homepage and traefik reach it by name on the bridge
+    # network, and publishing it would expose it to the LAN and host-network
+    # containers like plex.
     networks:
       - name: "{{ docker_network }}"
     env:
