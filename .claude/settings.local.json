@@ -10,7 +10,8 @@
       "Bash(curl -sv -o /dev/null -m 10 http://sonarr.home.arpa/)"
     ],
     "deny": [
-      "Bash(ansible-vault:*)"
+      "Bash(ansible-vault:*)",
+      "Read(vars/vault.yml)"
     ]
   }
 }
