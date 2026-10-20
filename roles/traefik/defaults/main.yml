@@ -1,5 +1,5 @@
 ---
-docker_image_version: "v3.1"
+docker_image_version: "v3"
 traefik_config_directory: "{{ config_directory }}/traefik"
 
 # Reuse the existing macvlan network created by adguard-home

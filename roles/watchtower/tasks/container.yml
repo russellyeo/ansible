@@ -5,7 +5,9 @@
     - watchtower
   docker_container:
     name: watchtower
-    image: containrrr/watchtower
+    # Maintained fork of the archived containrrr/watchtower. Held on v1:
+    # v2 drops the legacy WATCHTOWER_NOTIFICATION_SLACK_* variables below.
+    image: nickfedor/watchtower:1
     state: "{{ docker_state }}"
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
