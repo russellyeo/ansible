@@ -7,11 +7,13 @@
   docker_container:
     name: ntfy
     image: binwiederhier/ntfy:latest
-    state: absent
-    restart: "{{ docker_restart }}"
+    state: "{{ docker_state }}"
+    # ntfy reads server.yml only at startup
+    restart: "{{ 'yes' if ntfy_config is changed else docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"
     command: serve
+    user: "{{ servarr_uid }}:{{ servarr_gid }}"
     volumes:
       - "{{ config_directory }}/ntfy:/etc/ntfy"
       - "{{ config_directory }}/ntfy/cache:/var/cache/ntfy"
@@ -21,16 +23,14 @@
       - "{{ dns_primary }}"
       - "{{ dns_secondary }}"
     ports:
-      - "{{ host_port }}:80"
+      - "{{ host_port }}:8080"
     env:
-      PUID: "{{ servarr_uid }}"
-      PGID: "{{ servarr_gid }}"
       TZ: "{{ timezone }}"
     labels:
       traefik.enable: "true"
       traefik.http.routers.ntfy.rule: "Host(`ntfy.{{ home_domain }}`)"
       traefik.http.routers.ntfy.entrypoints: "web"
-      traefik.http.services.ntfy.loadbalancer.server.port: "80"
+      traefik.http.services.ntfy.loadbalancer.server.port: "8080"
       homepage.group: "Infrastructure"
       homepage.name: "Ntfy"
       homepage.icon: "ntfy.png"

@@ -1,0 +1,10 @@
+# https://docs.ntfy.sh/config/
+base-url: "http://ntfy.{{ home_domain }}"
+listen-http: ":8080"
+cache-file: "/var/cache/ntfy/cache.db"
+cache-duration: "12h"
+attachment-cache-dir: "/var/cache/ntfy/attachments"
+behind-proxy: true
+# The iOS app can't hold a connection open to a self-hosted server, so ntfy
+# sends ntfy.sh a poll request (message ID only, no content) to wake it.
+upstream-base-url: "https://ntfy.sh"

@@ -20,3 +20,15 @@
     owner: servarr
     group: servarr
     mode: '{{ directory_mode }}'
+
+- name: Ensure server config is present
+  tags:
+    - ntfy
+    - config
+  template:
+    src: server.yml.j2
+    dest: '{{ config_directory }}/ntfy/server.yml'
+    owner: servarr
+    group: servarr
+    mode: '{{ file_mode }}'
+  register: ntfy_config
