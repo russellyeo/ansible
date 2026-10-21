@@ -1,0 +1,9 @@
+# Uptime Kuma checks that services and hosts are up and sends alerts to ntfy
+# when they go down. Monitors and notification settings live in its SQLite
+# database, not in Ansible.
+#
+# Documentation: https://github.com/louislam/uptime-kuma/wiki
+#
+---
+- import_tasks: file.yml
+- import_tasks: container.yml

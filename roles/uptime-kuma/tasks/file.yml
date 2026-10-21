@@ -1,0 +1,12 @@
+---
+- name: Ensure data directory is present
+  tags:
+    - uptime-kuma
+    - file
+    - config
+  file:
+    path: '{{ config_directory }}/uptime-kuma'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'

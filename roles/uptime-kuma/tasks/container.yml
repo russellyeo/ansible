@@ -1,0 +1,35 @@
+# https://github.com/louislam/uptime-kuma/wiki/%F0%9F%94%A7-How-to-Install
+---
+- name: Start container
+  tags:
+    - uptime-kuma
+    - container
+  docker_container:
+    name: uptime-kuma
+    image: louislam/uptime-kuma:2
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    user: "{{ servarr_uid }}:{{ servarr_gid }}"
+    volumes:
+      - "{{ config_directory }}/uptime-kuma:/app/data"
+    networks:
+      - name: "{{ docker_network }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    ports:
+      - "{{ host_port }}:3001"
+    env:
+      TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.uptime-kuma.rule: "Host(`uptime.{{ home_domain }}`)"
+      traefik.http.routers.uptime-kuma.entrypoints: "web"
+      traefik.http.services.uptime-kuma.loadbalancer.server.port: "3001"
+      homepage.group: "Infrastructure"
+      homepage.name: "Uptime Kuma"
+      homepage.icon: "uptime-kuma.png"
+      homepage.description: "Service monitoring"
+      homepage.href: "http://uptime.{{ home_domain }}"
