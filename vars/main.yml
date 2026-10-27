@@ -16,7 +16,10 @@ home_domain: "home.arpa"
 # Docker
 docker_state: "started"
 docker_restart: "no"
-docker_restart_policy: "unless-stopped"
+# "always", not "unless-stopped": DSM auto-updates `docker stop` every
+# container before rebooting, which "unless-stopped" treats as a manual stop
+# and leaves the whole stack down afterwards (2026-10-27).
+docker_restart_policy: "always"
 docker_recreate: "no"
 docker_bridge_gateway: "172.18.0.1"
 
