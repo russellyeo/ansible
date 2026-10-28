@@ -108,14 +108,15 @@ See `ARCHITECTURE.md` for the networking stack: a diagram, which names work wher
 ### Playbook Execution Order
 
 The main `playbook.yml` runs roles in this order:
-1. `docker-network` - Creates bridge network
-2. `docker-socket-proxy` - Secure Docker API access
-3. `coredns` / `traefik` - DNS and reverse proxy
-4. `homepage` - Dashboard
-5. Download clients: `transmission`, `transmission-openvpn`
-6. Media servers: `plex`
-7. Media management: `sonarr`, `radarr`, `prowlarr`, `bazarr`, `seerr`
-8. Supporting: `flaresolverr`, `adguard-home`, `ntfy`, `n8n`, `changedetection`, `watchtower`
+1. `docker-daemon` - Checks Container Manager is running (tagged `always`)
+2. `docker-network` - Creates bridge network
+3. `docker-socket-proxy` - Secure Docker API access
+4. `coredns` (removes the old container; AdGuard serves DNS) / `traefik` - Reverse proxy
+5. `homepage` - Dashboard
+6. Download clients: `transmission`, `transmission-openvpn`
+7. Media servers: `plex`, `jellyfin`
+8. Media management: `sonarr`, `radarr`, `prowlarr`, `bazarr`, `seerr`, `calibre-web-automated`
+9. Supporting: `flaresolverr`, `adguard-home`, `tailscale-router`, `ntfy`, `uptime-kuma`, `beszel`, `n8n`, `changedetection`, `watchtower`
 
 ## Development Workflow
 
