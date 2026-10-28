@@ -8,3 +8,13 @@ sonarr_allowed_hosts:
   - "{{ network_localhost }}"
   - "sonarr.{{ home_domain }}"
   - "sonarr.{{ public_domain }}"
+
+# Settings written into config.xml (tasks/config.yml). Only these keys are
+# touched; Sonarr owns the rest of the file.
+# AuthenticationMethod External: no login. Only the LAN and the tailnet can
+# reach Traefik, and DisabledForLocalAddresses doesn't work behind it (any
+# request with X-Forwarded-For counts as non-local).
+sonarr_config_settings:
+  AllowedHosts: "{{ sonarr_allowed_hosts | join(',') }}"
+  AuthenticationMethod: External
+  UrlBase: ""

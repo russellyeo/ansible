@@ -1,2 +1,20 @@
 ---
 host_port: '7878'
+
+# Radarr answers only to these Host headers (<AllowedHosts> in config.xml).
+# `radarr` is the container name on the docker network.
+radarr_allowed_hosts:
+  - radarr
+  - "{{ network_localhost }}"
+  - "radarr.{{ home_domain }}"
+  - "radarr.{{ public_domain }}"
+
+# Settings written into config.xml (tasks/config.yml). Only these keys are
+# touched; Radarr owns the rest of the file.
+# AuthenticationMethod External: no login. Only the LAN and the tailnet can
+# reach Traefik, and DisabledForLocalAddresses doesn't work behind it (any
+# request with X-Forwarded-For counts as non-local).
+radarr_config_settings:
+  AllowedHosts: "{{ radarr_allowed_hosts | join(',') }}"
+  AuthenticationMethod: External
+  UrlBase: ""

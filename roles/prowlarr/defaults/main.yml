@@ -1,2 +1,20 @@
 ---
 host_port: '9696'
+
+# Prowlarr answers only to these Host headers (<AllowedHosts> in config.xml).
+# `prowlarr` is the container name on the docker network.
+prowlarr_allowed_hosts:
+  - prowlarr
+  - "{{ network_localhost }}"
+  - "prowlarr.{{ home_domain }}"
+  - "prowlarr.{{ public_domain }}"
+
+# Settings written into config.xml (tasks/config.yml). Only these keys are
+# touched; Prowlarr owns the rest of the file.
+# AuthenticationMethod External: no login. Only the LAN and the tailnet can
+# reach Traefik, and DisabledForLocalAddresses doesn't work behind it (any
+# request with X-Forwarded-For counts as non-local).
+prowlarr_config_settings:
+  AllowedHosts: "{{ prowlarr_allowed_hosts | join(',') }}"
+  AuthenticationMethod: External
+  UrlBase: ""
