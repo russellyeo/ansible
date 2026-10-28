@@ -30,6 +30,7 @@
     - adguard-home
     - ntfy
     - uptime-kuma
+    - beszel
     - n8n
     - changedetection
     - watchtower

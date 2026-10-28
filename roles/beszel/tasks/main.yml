@@ -1,0 +1,9 @@
+# Beszel shows CPU, memory, disk, network and temperature history for the
+# NAS and other hosts. The hub is the web UI; an agent runs on each host.
+# See README.md for why the NAS agent has no Docker access.
+#
+# Documentation: https://beszel.dev
+#
+---
+- import_tasks: file.yml
+- import_tasks: container.yml

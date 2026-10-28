@@ -1,0 +1,85 @@
+# https://beszel.dev/guide/hub-installation
+# https://beszel.dev/guide/agent-installation
+---
+- name: Start hub container
+  tags:
+    - beszel
+    - container
+  docker_container:
+    name: beszel
+    image: henrygd/beszel:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    user: "{{ servarr_uid }}:{{ servarr_gid }}"
+    volumes:
+      - "{{ beszel_directory }}/hub:/beszel_data"
+    networks:
+      - name: "{{ docker_network }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    ports:
+      - "{{ host_port }}:8090"
+    env:
+      TZ: "{{ timezone }}"
+      APP_URL: "http://beszel.{{ home_domain }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.beszel.rule: "Host(`beszel.{{ home_domain }}`)"
+      traefik.http.routers.beszel.entrypoints: "web"
+      traefik.http.services.beszel.loadbalancer.server.port: "8090"
+      homepage.group: "Infrastructure"
+      homepage.name: "Beszel"
+      homepage.icon: "beszel.png"
+      homepage.description: "Host monitoring"
+      homepage.href: "http://beszel.{{ home_domain }}"
+
+# The hub creates its SSH key pair on first start. The agent only accepts
+# connections from the matching public key.
+- name: Wait for hub key
+  tags:
+    - beszel
+    - container
+  # Read-only, so run in --check too; otherwise KEY renders empty and the
+  # agent always shows as changed.
+  check_mode: false
+  wait_for:
+    path: "{{ beszel_directory }}/hub/id_ed25519"
+    timeout: 60
+
+- name: Read hub public key
+  tags:
+    - beszel
+    - container
+  command: ssh-keygen -y -f "{{ beszel_directory }}/hub/id_ed25519"
+  register: beszel_hub_public_key
+  changed_when: false
+  check_mode: false
+
+- name: Start agent container
+  tags:
+    - beszel
+    - container
+  docker_container:
+    name: beszel-agent
+    image: henrygd/beszel-agent:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    user: "{{ servarr_uid }}:{{ servarr_gid }}"
+    # Host networking so the network graph shows the NAS's interfaces, not
+    # the container's.
+    network_mode: host
+    volumes:
+      - "{{ beszel_directory }}/agent:/var/lib/beszel-agent"
+    env:
+      TZ: "{{ timezone }}"
+      LISTEN: "{{ beszel_agent_port }}"
+      KEY: "{{ beszel_hub_public_key.stdout }}"
+      # No Docker access: see README.md.
+      DOCKER_HOST: ""
+    labels:
+      traefik.enable: "false"

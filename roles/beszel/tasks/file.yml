@@ -1,0 +1,16 @@
+---
+- name: Ensure directories are present
+  tags:
+    - beszel
+    - file
+    - config
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+  loop:
+    - "{{ beszel_directory }}"
+    - "{{ beszel_directory }}/hub"
+    - "{{ beszel_directory }}/agent"

@@ -1,0 +1,4 @@
+---
+host_port: '8090'
+beszel_agent_port: '45876'
+beszel_directory: "{{ config_directory }}/beszel"
