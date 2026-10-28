@@ -92,6 +92,8 @@ Most roles follow a standard three-step pattern in `tasks/main.yml`:
 
 ### Network Architecture
 
+See `ARCHITECTURE.md` for the full networking stack with diagrams (addresses, DNS, request paths, certificates).
+
 **Synology Setup:**
 - Bridge network: `docker_network_synology`
 - Docker socket proxy on port 2375 for secure API access
