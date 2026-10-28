@@ -16,7 +16,7 @@ traefik_public_domain: "{{ public_domain }}"
 # Let's Encrypt staging issues untrusted certificates but has generous rate
 # limits. Switching to production needs acme/acme.json deleted on the NAS so
 # the staging certificate isn't reused.
-traefik_acme_staging: true
+traefik_acme_staging: false
 
 # Backend for the host-networked Plex container, routed via the file provider.
 # Mirrors host_port in roles/plex/defaults; role defaults are not shared.
