@@ -19,7 +19,11 @@ enable_unrar_script: "true"
 enable_speed_limits: "true"
 speed_limit_up: "150000" # kbps
 speed_limit_down: "150000" # kbps
-upload_ratio_limit: "1"
+upload_ratio_limit: "2"
+# Also stop a torrent after this many minutes with no uploads, so torrents
+# that never reach the ratio still stop and Sonarr/Radarr remove them
+# (Remove Completed, set in their download client settings).
+idle_seeding_limit: "4320" # minutes (3 days)
 upload_slots_per_torrent: "14"
 alt_speed_up: "100000" # kbps
 alt_speed_down: "100000" # kbps

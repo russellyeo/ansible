@@ -39,6 +39,8 @@
       TRANSMISSION_RPC_HOST_WHITELIST: "{{ rpc_host_whitelist }}"
       TRANSMISSION_RATIO_LIMIT: "{{ upload_ratio_limit }}"
       TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
+      TRANSMISSION_IDLE_SEEDING_LIMIT: "{{ idle_seeding_limit }}"
+      TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED: "true"
       TRANSMISSION_SPEED_LIMIT_UP_ENABLED: "{{ enable_speed_limits }}"
       TRANSMISSION_SPEED_LIMIT_DOWN_ENABLED: "{{ enable_speed_limits }}"
       TRANSMISSION_SPEED_LIMIT_UP: "{{ speed_limit_up }}"
