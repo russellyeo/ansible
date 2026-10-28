@@ -1,0 +1,8 @@
+---
+# AdGuard reads AdGuardHome.yaml on startup. DNS is down for a few seconds;
+# the router hands out 1.1.1.1 as a second DNS server.
+- name: Restart adguard-home
+  community.docker.docker_container:
+    name: adguard-home
+    state: started
+    restart: true

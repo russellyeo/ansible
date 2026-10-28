@@ -1,0 +1,30 @@
+# AdGuard owns AdGuardHome.yaml (it holds the admin password hash and every
+# UI setting), so only the rewrites list is managed here. AdGuard creates the
+# file on first setup; the next run sets the rewrites. Rewrites added in the
+# UI are replaced on the next run: add them to adguard_rewrites instead.
+---
+- name: Check for AdGuard config
+  tags:
+    - adguard-home
+    - config
+  stat:
+    path: "{{ adguard_config_directory }}/conf/AdGuardHome.yaml"
+  register: adguard_config
+
+- name: Set DNS rewrites
+  tags:
+    - adguard-home
+    - config
+  replace:
+    path: "{{ adguard_config_directory }}/conf/AdGuardHome.yaml"
+    # The list under `filtering:` → `rewrites:`, up to the next key.
+    regexp: '^  rewrites:\n(?:    .*\n)*'
+    replace: |
+      {{ '  rewrites:' }}
+      {% for rewrite in adguard_rewrites %}
+          - domain: '{{ rewrite.domain }}'
+            answer: {{ rewrite.answer }}
+            enabled: true
+      {% endfor %}
+  when: adguard_config.stat.exists
+  notify: Restart adguard-home

@@ -12,3 +12,15 @@ adguard_ip: "192.168.1.166"
 # must come back after a stop/recreate gap. "unless-stopped" left it down for
 # 12 days after a stray SIGTERM on 2026-07-14.
 adguard_restart_policy: "always"
+
+# DNS rewrites, written into AdGuardHome.yaml (tasks/config.yml). Both point
+# at Traefik. The public_domain one keeps https://<service>.<public_domain>
+# working at home when the internet (and so Cloudflare DNS) is down.
+adguard_rewrites:
+  - domain: "*.{{ home_domain }}"
+    answer: "{{ traefik_ip }}"
+  - domain: "*.{{ public_domain }}"
+    answer: "{{ traefik_ip }}"
+
+# Mirrors traefik_ip in roles/traefik/defaults; role defaults are not shared.
+traefik_ip: "192.168.1.167"
