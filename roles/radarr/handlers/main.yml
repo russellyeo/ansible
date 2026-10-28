@@ -1,0 +1,7 @@
+---
+# Radarr reads config.xml on startup.
+- name: Restart radarr
+  community.docker.docker_container:
+    name: radarr
+    state: started
+    restart: true

@@ -1,0 +1,25 @@
+# Prowlarr owns config.xml and rewrites it when settings change in the UI, so
+# only individual settings are managed here. Prowlarr creates the file on first
+# start; the next run sets these.
+---
+- name: Check for Prowlarr config
+  tags:
+    - prowlarr
+    - config
+  stat:
+    path: "{{ config_directory }}/prowlarr/config.xml"
+  register: prowlarr_config
+
+# No login: only the LAN and the tailnet can reach Traefik. External is the
+# setting meant for this. DisabledForLocalAddresses doesn't work behind
+# Traefik, because any request with X-Forwarded-For counts as non-local.
+- name: Turn off the login
+  tags:
+    - prowlarr
+    - config
+  replace:
+    path: "{{ config_directory }}/prowlarr/config.xml"
+    regexp: '<AuthenticationMethod>.*</AuthenticationMethod>'
+    replace: '<AuthenticationMethod>External</AuthenticationMethod>'
+  when: prowlarr_config.stat.exists
+  notify: Restart prowlarr

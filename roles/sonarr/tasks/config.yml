@@ -20,3 +20,17 @@
     replace: '<AllowedHosts>{{ sonarr_allowed_hosts | join(",") }}</AllowedHosts>'
   when: sonarr_config.stat.exists
   notify: Restart sonarr
+
+# No login: only the LAN and the tailnet can reach Traefik. External is the
+# setting meant for this. DisabledForLocalAddresses doesn't work behind
+# Traefik, because any request with X-Forwarded-For counts as non-local.
+- name: Turn off the login
+  tags:
+    - sonarr
+    - config
+  replace:
+    path: "{{ config_directory }}/sonarr/config.xml"
+    regexp: '<AuthenticationMethod>.*</AuthenticationMethod>'
+    replace: '<AuthenticationMethod>External</AuthenticationMethod>'
+  when: sonarr_config.stat.exists
+  notify: Restart sonarr

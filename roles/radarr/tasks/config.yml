@@ -1,0 +1,25 @@
+# Radarr owns config.xml and rewrites it when settings change in the UI, so
+# only individual settings are managed here. Radarr creates the file on first
+# start; the next run sets these.
+---
+- name: Check for Radarr config
+  tags:
+    - radarr
+    - config
+  stat:
+    path: "{{ config_directory }}/radarr/config.xml"
+  register: radarr_config
+
+# No login: only the LAN and the tailnet can reach Traefik. External is the
+# setting meant for this. DisabledForLocalAddresses doesn't work behind
+# Traefik, because any request with X-Forwarded-For counts as non-local.
+- name: Turn off the login
+  tags:
+    - radarr
+    - config
+  replace:
+    path: "{{ config_directory }}/radarr/config.xml"
+    regexp: '<AuthenticationMethod>.*</AuthenticationMethod>'
+    replace: '<AuthenticationMethod>External</AuthenticationMethod>'
+  when: radarr_config.stat.exists
+  notify: Restart radarr

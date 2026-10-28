@@ -1,0 +1,7 @@
+---
+# Prowlarr reads config.xml on startup.
+- name: Restart prowlarr
+  community.docker.docker_container:
+    name: prowlarr
+    state: started
+    restart: true
