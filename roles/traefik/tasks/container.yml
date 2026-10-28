@@ -31,4 +31,4 @@
       homepage.name: "Traefik"
       homepage.icon: "traefik.png"
       homepage.description: "Reverse Proxy"
-      homepage.href: "http://{{ traefik_ip }}:8080"
+      homepage.href: "https://traefik.{{ public_domain }}/dashboard/"

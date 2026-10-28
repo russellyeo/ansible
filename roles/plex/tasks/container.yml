@@ -34,7 +34,7 @@
       homepage.name: "Plex"
       homepage.icon: "plex.png"
       homepage.description: "Watch stuff"
-      homepage.href: "http://plex.{{ home_domain }}"
+      homepage.href: "https://plex.{{ public_domain }}"
       homepage.weight: "1"
       homepage.widget.type: plex
       homepage.widget.url: "http://{{ docker_bridge_gateway }}:{{ host_port }}"

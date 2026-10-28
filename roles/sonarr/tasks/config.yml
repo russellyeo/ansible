@@ -1,0 +1,22 @@
+# Sonarr owns config.xml and rewrites it when settings change in the UI, so
+# only individual settings are managed here. Sonarr creates the file on first
+# start; the next run sets these.
+---
+- name: Check for Sonarr config
+  tags:
+    - sonarr
+    - config
+  stat:
+    path: "{{ config_directory }}/sonarr/config.xml"
+  register: sonarr_config
+
+- name: Set allowed hosts
+  tags:
+    - sonarr
+    - config
+  replace:
+    path: "{{ config_directory }}/sonarr/config.xml"
+    regexp: '<AllowedHosts>.*</AllowedHosts>'
+    replace: '<AllowedHosts>{{ sonarr_allowed_hosts | join(",") }}</AllowedHosts>'
+  when: sonarr_config.stat.exists
+  notify: Restart sonarr

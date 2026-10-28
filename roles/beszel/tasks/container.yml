@@ -24,17 +24,17 @@
       - "{{ host_port }}:8090"
     env:
       TZ: "{{ timezone }}"
-      APP_URL: "http://beszel.{{ home_domain }}"
+      APP_URL: "https://beszel.{{ public_domain }}"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.beszel.rule: "Host(`beszel.{{ home_domain }}`)"
-      traefik.http.routers.beszel.entrypoints: "web"
+      traefik.http.routers.beszel.rule: "Host(`beszel.{{ home_domain }}`) || Host(`beszel.{{ public_domain }}`)"
+      traefik.http.routers.beszel.entrypoints: "web,websecure"
       traefik.http.services.beszel.loadbalancer.server.port: "8090"
       homepage.group: "Infrastructure"
       homepage.name: "Beszel"
       homepage.icon: "beszel.png"
       homepage.description: "Host monitoring"
-      homepage.href: "http://beszel.{{ home_domain }}"
+      homepage.href: "https://beszel.{{ public_domain }}"
 
 # The hub creates its SSH key pair on first start. The agent only accepts
 # connections from the matching public key.

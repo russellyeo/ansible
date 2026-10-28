@@ -23,14 +23,14 @@
       - "{{ host_port }}:5000"
     env:
       TZ: "{{ timezone }}"
-      BASE_URL: "http://changedetection.{{ home_domain }}"
+      BASE_URL: "https://changedetection.{{ public_domain }}"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.changedetection.rule: "Host(`changedetection.{{ home_domain }}`)"
-      traefik.http.routers.changedetection.entrypoints: "web"
+      traefik.http.routers.changedetection.rule: "Host(`changedetection.{{ home_domain }}`) || Host(`changedetection.{{ public_domain }}`)"
+      traefik.http.routers.changedetection.entrypoints: "web,websecure"
       traefik.http.services.changedetection.loadbalancer.server.port: "5000"
       homepage.group: "Infrastructure"
       homepage.name: "changedetection.io"
       homepage.icon: "changedetection.png"
       homepage.description: "Website change alerts"
-      homepage.href: "http://changedetection.{{ home_domain }}"
+      homepage.href: "https://changedetection.{{ public_domain }}"

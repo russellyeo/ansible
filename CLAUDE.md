@@ -102,6 +102,7 @@ Most roles follow a standard three-step pattern in `tasks/main.yml`:
 - All containers run on shared Docker bridge network
 - Homepage connects to Docker socket proxy for monitoring
 - Traefik handles routing and SSL termination
+- Each service is at `http://<service>.home.arpa` and `https://<service>.russellyeo.dev` (`public_domain`). Traefik holds a Let's Encrypt wildcard certificate for `*.russellyeo.dev` (Cloudflare DNS challenge); Cloudflare DNS points `*.russellyeo.dev` at Traefik's LAN IP, "DNS only". A new service needs both hosts in its router rule and `entrypoints: "web,websecure"`
 
 ### Playbook Execution Order
 

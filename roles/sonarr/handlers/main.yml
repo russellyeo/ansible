@@ -1,0 +1,7 @@
+---
+# Sonarr reads config.xml on startup.
+- name: Restart sonarr
+  community.docker.docker_container:
+    name: sonarr
+    state: started
+    restart: true

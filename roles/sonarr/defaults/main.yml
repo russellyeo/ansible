@@ -1,2 +1,10 @@
 ---
 host_port: '8989'
+
+# Sonarr answers only to these Host headers (<AllowedHosts> in config.xml).
+# `sonarr` is the container name on the docker network.
+sonarr_allowed_hosts:
+  - sonarr
+  - "{{ network_localhost }}"
+  - "sonarr.{{ home_domain }}"
+  - "sonarr.{{ public_domain }}"

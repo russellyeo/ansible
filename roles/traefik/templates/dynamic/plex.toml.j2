@@ -7,8 +7,8 @@
 # Traefik can reach over its docker_network interface. Same trick the homepage
 # plex widget uses.
 [http.routers.plex]
-  rule = "Host(`plex.{{ traefik_home_domain }}`)"
-  entryPoints = ["web"]
+  rule = "Host(`plex.{{ traefik_home_domain }}`) || Host(`plex.{{ traefik_public_domain }}`)"
+  entryPoints = ["web", "websecure"]
   service = "plex"
 
 [http.services.plex.loadBalancer]
