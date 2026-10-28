@@ -1,0 +1,12 @@
+---
+- name: Ensure state directory is present
+  tags:
+    - tailscale-router
+    - file
+    - config
+  file:
+    path: "{{ config_directory }}/tailscale-router/state"
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: "{{ directory_mode }}"

@@ -95,7 +95,7 @@ Most roles follow a standard three-step pattern in `tasks/main.yml`:
 **Synology Setup:**
 - Bridge network: `docker_network_synology`
 - Docker socket proxy on port 2375 for secure API access
-- Tailscale integration for remote access
+- Tailscale integration for remote access: `tailscale-router` (on the macvlan at `.168`) advertises only Traefik's IP to the tailnet, so `https://<service>.russellyeo.dev` works away from home
 - Cloudflare tunnels for external access
 
 **Service Communication:**

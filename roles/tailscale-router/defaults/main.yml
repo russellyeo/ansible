@@ -1,0 +1,15 @@
+---
+# Shares Traefik with the tailnet, so https://<service>.{{ public_domain }}
+# works away from home. Only Traefik: the rest of the LAN stays unreachable.
+tailscale_router_hostname: "tailscale-router"
+tailscale_router_routes:
+  - "{{ traefik_ip }}/32"
+
+# Must sit on the macvlan beside Traefik: the NAS itself can't reach macvlan
+# IPs, so the NAS's own Tailscale can't route to Traefik. Outside the
+# router's DHCP range, like adguard_ip and traefik_ip.
+tailscale_router_macvlan_network: "adguard_network"
+tailscale_router_ip: "192.168.1.168"
+
+# Mirrors traefik_ip in roles/traefik/defaults; role defaults are not shared.
+traefik_ip: "192.168.1.167"

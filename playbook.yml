@@ -28,6 +28,7 @@
     - calibre-web-automated
     - flaresolverr
     - adguard-home
+    - tailscale-router
     - ntfy
     - uptime-kuma
     - beszel
