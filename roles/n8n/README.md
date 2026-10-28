@@ -1,55 +1,97 @@
 # n8n
 
-Workflow automation. Runs the Ally Pally farmers' market (CCFM) calendar
-sync and Saturday reminder, and the subtitled cinema screenings calendar and
-Friday digest.
+Workflow automation. It runs two sets of workflows:
+
+- **CCFM**: keeps a calendar of where the Ally Pally farmers' market is each
+  Sunday, and sends a Saturday reminder.
+- **Cinema**: keeps a calendar of subtitled cinema screenings, and sends a
+  Friday digest.
 
 ## URLs
 
-- `http://n8n.home.arpa`: LAN, through Traefik. Keeps working when the
-  internet connection drops.
-- `https://n8n.<tailnet>.ts.net`: tailnet only, through the `n8n-tailscale`
-  sidecar (`tailscale serve`, not Funnel). This is `N8N_EDITOR_BASE_URL`, so
-  OAuth callbacks and links in emails use it.
+| URL | Reached from | Through |
+|---|---|---|
+| `http://n8n.home.arpa` | LAN | Traefik. Works even when the internet is down. |
+| `https://n8n.<tailnet>.ts.net` | Tailnet only | The `n8n-tailscale` sidecar (`tailscale serve`, not Funnel) |
 
-The sidecar's auth key is `vault_tailscale_authkey`; it is only used on first
-start (`TS_AUTH_ONCE`), after which the node identity lives in
+### Why the Tailscale sidecar exists
+
+Google sign-in needs an HTTPS callback URL, and it rejects
+`http://n8n.home.arpa`. The sidecar gives n8n a real HTTPS address on the
+tailnet, so that address is n8n's `N8N_EDITOR_BASE_URL`. n8n uses it for:
+
+- **The Google OAuth callback.** The Google Calendar and Gmail credentials are
+  tied to it (see [Google setup](#google-setup)).
+- **Links in emails.** Execution links in the failure and cinema alert emails
+  only open on a device that's on the tailnet.
+
+Remote access to the editor is a bonus. **Don't remove the sidecar.** The
+Google credentials keep working without it, but you couldn't reconnect them
+when they next need it.
+
+Webhooks don't go through the sidecar. `WEBHOOK_URL` is the LAN address.
+
+The sidecar's auth key is `vault_tailscale_authkey`. It's only used on first
+start (`TS_AUTH_ONCE`). After that, the node identity lives in
 `{{ config_directory }}/n8n-tailscale/state`.
+
+## Editing workflows
+
+Every workflow lives in this repo:
+
+- The workflow itself is a template in `templates/workflows/*.json.j2`.
+- Its code is in `files/ccfm/` or `files/cinema/`, pasted into the Code nodes.
+
+Ansible renders the templates and imports and publishes any that changed. The
+templates use `<< >>` delimiters, so n8n's own `{{ }}` expressions are left
+alone.
+
+**Edits made in the n8n UI are overwritten on the next import.** Make changes
+here instead.
+
+To force a re-import, delete the rendered file in
+`{{ config_directory }}/n8n/workflows/` and run:
+
+```sh
+ansible-playbook playbook.yml --tags n8n
+```
+
+Nothing is imported until both Google credential IDs are set in
+`group_vars/synology.yml`.
 
 ## CCFM workflows
 
-| Workflow | Trigger | Does |
+| Workflow | Runs | Does |
 |---|---|---|
-| `CCFM: sync Ally Pally market calendar` | Mon 07:00, and `POST /webhook/ccfm-sync` from changedetection.io | Parses the schedule page and creates, moves or deletes events in the Ally Pally Market calendar. Emails only for surprises (a date moved or vanished). |
-| `CCFM: Saturday market reminder` | Sat 18:00 | Emails where Sunday's market is. |
-| `CCFM: email on failure` | Error workflow of the other two | Emails the error and an execution link. |
+| `CCFM: sync Ally Pally market calendar` | Mon 07:00, and when changedetection.io posts to `/webhook/ccfm-sync` | Reads the market's schedule page and creates, moves or deletes events in the Ally Pally Market calendar. Emails only when something surprising happens: a date moved or vanished. |
+| `CCFM: Saturday market reminder` | Sat 18:00 | Emails where Sunday's market is |
+| `CCFM: email on failure` | When either of the others fails | Emails the error and an execution link |
 
-The workflows are defined in `templates/workflows/*.json.j2` and the logic in
-`files/ccfm/ccfm.js`, which is pasted into the Code nodes. Ansible renders the
-templates (with `<< >>` delimiters, leaving n8n's `{{ }}` alone) and imports
-and publishes any that changed. **Edits made in the n8n UI are overwritten on
-the next import**: make changes here instead. To force a re-import, delete the
-rendered file in `{{ config_directory }}/n8n/workflows/` and re-run
-`ansible-playbook playbook.yml --tags n8n`.
-
-Import is skipped until both credential IDs are set in `group_vars/synology.yml`.
+The logic is in `files/ccfm/ccfm.js`.
 
 ### Emails
 
-The reminder is an HTML email with a photo of that week's location
-(`files/ccfm/photos/<location>.jpg`, about 60 KB each). Gmail can't fetch
-images from the NAS, so the photo is attached inline (`cid:`): Ansible
-base64-encodes the photos into the "Build reminder" Code node, `buildMime` in
-`ccfm.js` builds the MIME message, and "Send reminder" posts it to the Gmail
-API (`users.messages.send`) with the `Gmail` credential. The n8n Gmail node
-can't send inline images. To change a photo, replace the JPEG (keep it small)
-and redeploy.
+- **Reminder**: HTML, with a photo of that week's location
+  (`files/ccfm/photos/<location>.jpg`, about 60 KB each).
+- **Change email**: HTML, sent with the Gmail node.
+- **Failure email**: plain text.
 
-The change email is HTML through the Gmail node; the failure email is plain
-text. Synced events whose title, location or description no longer match
-`eventBody` (after a rename or a new map link) are updated on the next sync
-without an email. A synced event deleted by hand in Google Calendar is
-recreated on the next sync.
+Gmail can't fetch images from the NAS, and the n8n Gmail node can't send
+inline images. So the reminder is built by hand:
+
+1. Ansible base64-encodes the photos into the "Build reminder" Code node.
+2. `buildMime` in `ccfm.js` builds the MIME message with the photo inline
+   (`cid:`).
+3. "Send reminder" posts it to the Gmail API (`users.messages.send`) using the
+   `Gmail` credential.
+
+To change a photo, replace the JPEG (keep it small) and redeploy.
+
+### How the sync treats existing events
+
+- An event whose title, location or description is out of date (after a
+  rename or a new map link) is updated quietly on the next sync.
+- An event you delete by hand in Google Calendar comes back on the next sync.
 
 ### Tests
 
@@ -57,8 +99,8 @@ recreated on the next sync.
 node --test 'roles/n8n/files/ccfm/test/*.test.js'
 ```
 
-When the page layout changes, refresh the fixture and update the expected
-dates in `test/parse.test.js`:
+When the page layout changes, save a new copy of the page, then update the
+expected dates in `test/parse.test.js`:
 
 ```sh
 curl -s -A 'Mozilla/5.0' https://www.weareccfm.com/our-markets/alexandra-palace/ \
@@ -67,61 +109,79 @@ curl -s -A 'Mozilla/5.0' https://www.weareccfm.com/our-markets/alexandra-palace/
 
 ## Cinema workflows
 
-Captioned (deaf/HoH) screenings at the cinemas in `cinemas`
-(`defaults/main.yml`) go into the **Subtitled Cinema Screenings** calendar,
-and a Friday digest covers the next two weeks. Weekday screenings count only
-if they start before 09:00 or at/after 17:00 (`cinema_free_hours`).
+These find captioned screenings (for deaf and hard-of-hearing viewers) at the
+cinemas listed in `cinemas` (`defaults/main.yml`). Screenings go into the
+**Subtitled Cinema Screenings** calendar, and a Friday digest covers the next
+two weeks.
 
-| Workflow | Trigger | Does |
+On weekdays, only screenings that start before 09:00 or at 17:00 or later
+count (`cinema_free_hours`).
+
+| Workflow | Runs | Does |
 |---|---|---|
-| `Cinema: collect subtitled screenings` | Called by the other two (or "Run manually") | Fetches and reads every cinema, looks films up on TMDB/OMDb, returns `{screenings, films, errors, okCinemaKeys, statusRows}` |
-| `Cinema: sync Subtitled Cinema Screenings calendar` | Daily 07:00 | Creates, updates and deletes calendar events; emails an alert when a cinema can't be read, or holds back deletions (naming the events) when more than 3 of a cinema's screenings vanish at once, or all of them while its listing comes back empty |
-| `Cinema: Friday digest of subtitled screenings` | Fri 09:00 | Emails the next two weeks by film: captioned first, then foreign-language films with English subtitles |
+| `Cinema: collect subtitled screenings` | When the other two call it, or by hand | Reads every cinema, looks films up on TMDB and OMDb, and returns `{screenings, films, errors, okCinemaKeys, statusRows}` |
+| `Cinema: sync Subtitled Cinema Screenings calendar` | Daily 07:00 | Creates, updates and deletes calendar events, and emails an alert when something needs a look (see [Safety checks](#safety-checks)) |
+| `Cinema: Friday digest of subtitled screenings` | Fri 09:00 | Emails the next two weeks, grouped by film: captioned first, then foreign-language films with English subtitles |
 
-Logic lives in `files/cinema/` (`core.js`, `readers/*.js`, `films.js`,
-`calendar.js`, `digest.js`), concatenated into the Code nodes with the
-per-node glue in `files/cinema/nodes/`. As with CCFM, edit here, not in the
-UI.
+The logic is in `files/cinema/`: `core.js`, `readers/*.js`, `films.js`,
+`calendar.js` and `digest.js`. These are joined together in each Code node,
+with that node's own code from `files/cinema/nodes/`.
 
 ### Cinemas
 
 | Chain | How it's read | `chain_id` |
 |---|---|---|
-| `picturehouse` | `POST /api/scheduled-movies-ajax`; `HOHSub` = captioned, `Sub Cinema` = foreign-language | Picturehouse cinema number (`024` Crouch End) |
-| `everyman` | Boxoffice API `schedule` + `movies`; tag `Showtime.Accessibility.ClosedCaption` | Theatre ID (`X06SN` Muswell Hill), from the site's `page-data/sq/d/*.json` |
-| `bfi` | The subtitles page through FlareSolverr (Cloudflare), embedded `searchResults` data | none |
+| `picturehouse` | `POST /api/scheduled-movies-ajax`. `HOHSub` means captioned and `Sub Cinema` means foreign-language. | Picturehouse cinema number (`024` is Crouch End) |
+| `everyman` | Boxoffice API `schedule` and `movies`, tag `Showtime.Accessibility.ClosedCaption` | Theatre ID (`X06SN` is Muswell Hill), found in the site's `page-data/sq/d/*.json` |
+| `bfi` | The subtitles page, fetched through FlareSolverr to get past Cloudflare, then its embedded `searchResults` data | None |
 
-Another branch of a supported chain is one more `cinemas` entry. A new
-chain needs a reader in `readers/`, a branch in `cinemaRequest` (`core.js`)
-and an entry in `READERS` (`nodes/read.js`).
+- **Adding another branch** of a supported chain takes one more `cinemas`
+  entry.
+- **Adding a new chain** needs a reader in `readers/`, a branch in
+  `cinemaRequest` (`core.js`) and an entry in `READERS` (`nodes/read.js`).
 
-BFI labels its screenings only "English subtitles", so `kind` on the BFI
-entry decides where they go: `captioned` (calendar and main section) or
-`by-language` (foreign-language films go to the digest's bottom section,
-using TMDB's original language).
+BFI labels every screening "English subtitles", so the `kind` on the BFI
+entry decides where they go:
 
-A cinema that can't be fetched or read is retried once after 60 s, then
-reported in the alert and at the top of the digest; its calendar events are
-left alone. GET and POST requests go through separate fetch nodes because
-Everyman's API answers a GET that carries a body (as n8n's shared HTTP node
-sends one) with a Cloudflare 502. If a cinema shows no captioned screenings
-for 4 weeks, the digest says its reader may need checking.
+- `captioned`: into the calendar and the digest's main section.
+- `by-language`: foreign-language films (by TMDB's original language) go to
+  the digest's bottom section.
 
-"Apply calendar op" doesn't retry: a node retry re-sends every op, so one
-rate-limited insert once left five copies of each event. A failed op is
-picked up by the next day's sync instead, and any extra copies of a
-screening (same `cinemaKey` and `cinemaSourceId`) are deleted.
+### Safety checks
+
+- **A cinema can't be read.** It's retried once after 60 seconds. If it still
+  fails, it's named in the alert email and at the top of the digest, and its
+  calendar events are left alone.
+- **Screenings vanish.** If more than 3 of a cinema's screenings disappear at
+  once, or all of them while its listing comes back empty, the deletions are
+  held back and the alert email names them.
+- **A cinema goes quiet.** If it shows no captioned screenings for 4 weeks,
+  the digest says its reader may need checking.
+- **Duplicate events.** Extra copies of a screening (same `cinemaKey` and
+  `cinemaSourceId`) are deleted.
+
+### Why some nodes look odd
+
+- **GET and POST use separate fetch nodes.** n8n's shared HTTP node sends a
+  body even with GET, and Everyman's API answers that with a Cloudflare 502.
+- **"Apply calendar op" never retries.** A node retry re-sends every
+  operation, and one rate-limited insert once left five copies of each event.
+  A failed operation is picked up by the next day's sync instead.
 
 ### Film info
 
-TMDB (`TMDB` credential, the API Read Access Token) and OMDb (`OMDb`
-credential) keys come from `vault_tmdb_api_read_access_token` and
-`vault_omdb_api_key`; `tasks/credentials.yml` imports them. Results are
-cached in the `cinema_films` data table, one row per normalised title (plus
-year when known); ratings refresh weekly. To fix a wrong match, put the
-right TMDB ID in that row's `override_tmdb_id`. `cinema_status` holds each
-cinema's last captioned date. Both tables were created by hand (n8n MCP
-`create_data_table`, string columns) and are referenced by name.
+- **API keys**: TMDB (the `TMDB` credential, using the API Read Access Token)
+  and OMDb (the `OMDb` credential). The keys come from
+  `vault_tmdb_api_read_access_token` and `vault_omdb_api_key`, and
+  `tasks/credentials.yml` imports them.
+- **`cinema_films` data table**: caches film info, one row per normalised
+  title (plus the year when known). Ratings refresh weekly. To fix a wrong
+  match, put the right TMDB ID in that row's `override_tmdb_id`.
+- **`cinema_status` data table**: holds the date each cinema last showed a
+  captioned screening.
+
+Both tables were created by hand (n8n MCP `create_data_table`, string
+columns) and the workflows find them by name.
 
 ### Tests
 
@@ -129,7 +189,8 @@ cinema's last captioned date. Both tables were created by hand (n8n MCP
 node --test 'roles/n8n/files/cinema/test/*.test.js'
 ```
 
-To refresh fixtures (then update expected counts in the tests):
+To refresh the saved responses (then update the expected counts in the
+tests):
 
 ```sh
 curl -s -X POST https://www.picturehouses.com/api/scheduled-movies-ajax \
@@ -145,28 +206,32 @@ curl -s -X POST https://www.picturehouses.com/api/scheduled-movies-ajax \
 
 Done once, by hand:
 
-- Google Cloud project `n8n-northview` with the Google Calendar API and Gmail
-  API enabled.
-- Google Auth Platform: External, **In production** (a "Testing" app's
-  refresh tokens expire after 7 days). Unverified is fine.
-- A Web application OAuth client whose redirect URI is
+- **Google Cloud project** `n8n-northview`, with the Google Calendar API and
+  Gmail API turned on.
+- **Google Auth Platform**: External and **In production**. Unverified is
+  fine. Don't leave it in "Testing": its refresh tokens expire after 7 days.
+- **OAuth client** (Web application) with the redirect URI
   `https://n8n.<tailnet>.ts.net/rest/oauth2-credential/callback`. Google
-  accepted the `ts.net` URI directly; no localhost fallback was needed.
-- n8n credentials `Google Calendar` (Google Calendar OAuth2 API) and `Gmail`
-  (Gmail OAuth2 API), sharing that client. Their IDs are in
+  accepted the `ts.net` address as it is. This is why the
+  [Tailscale sidecar](#why-the-tailscale-sidecar-exists) exists.
+- **n8n credentials** `Google Calendar` (Google Calendar OAuth2 API) and
+  `Gmail` (Gmail OAuth2 API), both using that client. Their IDs are in
   `group_vars/synology.yml`.
-- A calendar named `Ally Pally Market`; its ID is `vault_ccfm_calendar_id`.
-- A calendar named `Subtitled Cinema Screenings` (Europe/London); its ID is
-  `vault_cinema_calendar_id`.
+- **Calendars**:
+  - `Ally Pally Market`. Its ID is `vault_ccfm_calendar_id`.
+  - `Subtitled Cinema Screenings` (Europe/London). Its ID is
+    `vault_cinema_calendar_id`.
 
 ## Gotchas
 
-- n8n runs as `servarr_uid`, which has no passwd entry, hence
-  `N8N_USER_FOLDER` and the `n8n-cache` mount for `~/.cache`.
-- `import:workflow --activeState=fromJson` only works in queue mode, so
-  workflows are published with `n8n publish:workflow --id=...` after import.
-- n8n 2.x only calls a published error workflow.
-- `n8n execute` cannot run alongside the server (task broker port clash). Run
-  workflows from the editor or through the n8n MCP server instead.
-- `/healthz` answers before webhooks are registered; after a restart, wait
-  for `/webhook/ccfm-sync` to stop returning 404.
+- **n8n runs as `servarr_uid`, which has no home directory.** That's why
+  `N8N_USER_FOLDER` is set and `~/.cache` is mounted from `n8n-cache`.
+- **Workflows are published in a separate step.** `import:workflow
+  --activeState=fromJson` only works in queue mode, so each import is
+  followed by `n8n publish:workflow --id=...`.
+- **The error workflow must be published.** n8n 2.x won't call it otherwise.
+- **`n8n execute` doesn't work while the server is running**, because both
+  want the task broker port. Run workflows from the editor or through the
+  n8n MCP server.
+- **`/healthz` is ready before the webhooks are.** After a restart, wait until
+  `/webhook/ccfm-sync` stops returning 404.
