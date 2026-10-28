@@ -29,7 +29,7 @@
     labels:
       traefik.enable: "false"
       homepage.group: "Download clients"
-      homepage.name: "Transmission"
+      homepage.name: "Transmission No VPN"
       homepage.icon: "transmission.png"
       homepage.description: "No VPN"
       homepage.href: "http://{{ network_localhost }}:{{ host_port }}"

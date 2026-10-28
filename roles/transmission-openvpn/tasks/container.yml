@@ -57,7 +57,7 @@
     labels:
       traefik.enable: "false"
       homepage.group: "Download clients"
-      homepage.name: "Transmission"
+      homepage.name: "Transmission {{ item.description }}"
       homepage.icon: "transmission.png"
       homepage.description: "{{ item.description }}"
       homepage.href: "http://{{ network_localhost }}:{{ item.port }}{{ item.rpcUrl }}web"
