@@ -92,7 +92,7 @@ Most roles follow a standard three-step pattern in `tasks/main.yml`:
 
 ### Network Architecture
 
-See `ARCHITECTURE.md` for the full networking stack with diagrams (addresses, DNS, request paths, certificates).
+See `ARCHITECTURE.md` for the networking stack: a diagram, which names work where, and why it's shaped that way.
 
 **Synology Setup:**
 - Bridge network: `docker_network_synology`
@@ -125,6 +125,14 @@ The main `playbook.yml` runs roles in this order:
 3. Add default variables in `defaults/main.yml`
 4. Add role to `playbook.yml` in appropriate order
 5. Test with `ansible-playbook playbook.yml --tags <service-name>`
+
+### Keeping Docs Current
+When a change makes one of these wrong, update it in the same commit:
+- `ARCHITECTURE.md`: networking (IPs, DNS, Traefik, Tailscale, certificates, manual setup steps)
+- `roles/*/README.md`: that role's behaviour or setup
+- `README.md` and this file: commands, playbook order, conventions
+
+`docs/superpowers/` plans and specs are point-in-time records; leave them as written.
 
 ### Managing Secrets
 - All sensitive data goes in `vars/vault.yml`
