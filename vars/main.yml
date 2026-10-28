@@ -13,6 +13,11 @@ dns_secondary: "1.0.0.1"
 # -> traefik_ip, which then routes by Host() to each container.
 home_domain: "home.arpa"
 
+# Public domain for HTTPS. Its DNS is hosted on Cloudflare: *.{{ public_domain }}
+# points at traefik_ip ("DNS only"), and Traefik holds a wildcard
+# certificate for it.
+public_domain: "russellyeo.dev"
+
 # Docker
 docker_state: "started"
 docker_restart: "no"
@@ -28,6 +33,8 @@ tailnet_host: "{{ vault_tailnet_host }}"
 
 # Cloudflare
 cloudflare_tunnel_token: "{{ vault_cloudflare_tunnel_token }}"
+# Zone DNS edit for public_domain only; Traefik uses it for the ACME DNS challenge.
+cloudflare_dns_api_token: "{{ vault_cloudflare_dns_api_token }}"
 
 # Vault
 ansible_become_pass: "{{ vault_ansible_password }}"

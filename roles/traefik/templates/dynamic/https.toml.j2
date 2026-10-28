@@ -1,0 +1,20 @@
+# Sends http://<anything>.{{ traefik_public_domain }} to https. The high
+# priority beats service routers that also list the web entrypoint;
+# home.arpa hosts don't match and stay on plain HTTP.
+[http.routers.https-redirect]
+  rule = 'HostRegexp(`^.+\.{{ traefik_public_domain | regex_escape }}$`)'
+  entryPoints = ["web"]
+  priority = 10000
+  middlewares = ["https-redirect"]
+  service = "noop@internal"
+
+[http.middlewares.https-redirect.redirectScheme]
+  scheme = "https"
+  permanent = true
+
+# The dashboard over HTTPS. Also gives websecure a router, without which
+# Traefik never requests the wildcard certificate.
+[http.routers.dashboard]
+  rule = "Host(`traefik.{{ traefik_public_domain }}`)"
+  entryPoints = ["websecure"]
+  service = "api@internal"

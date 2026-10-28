@@ -12,6 +12,7 @@
     recreate: "{{ docker_recreate }}"
     volumes:
       - "{{ traefik_config_directory }}:/etc/traefik:ro"
+      - "{{ traefik_config_directory }}/acme:/acme"
     networks:
       - name: "{{ traefik_macvlan_network }}"
         ipv4_address: "{{ traefik_ip }}"
@@ -23,6 +24,7 @@
       - "{{ dns_secondary }}"
     env:
       TZ: "{{ timezone }}"
+      CF_DNS_API_TOKEN: "{{ cloudflare_dns_api_token }}"
     labels:
       traefik.enable: "false"
       homepage.group: "Infrastructure"

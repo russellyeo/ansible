@@ -21,6 +21,18 @@
     group: servarr
     mode: "{{ directory_mode }}"
 
+# Writable, unlike the config mount. Traefik creates acme.json here (0600).
+- name: Ensure ACME directory is present
+  tags:
+    - traefik
+    - config
+  file:
+    path: "{{ config_directory }}/traefik/acme"
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: "700"
+
 - name: Template config files
   tags:
     - traefik
@@ -34,3 +46,4 @@
   loop:
     - "traefik.toml"
     - "dynamic/plex.toml"
+    - "dynamic/https.toml"

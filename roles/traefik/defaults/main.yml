@@ -10,6 +10,14 @@ traefik_ip: "192.168.1.167"
 # Local domain for routing rules
 traefik_home_domain: "{{ home_domain }}"
 
+# Served over HTTPS with a wildcard certificate for *.{{ traefik_public_domain }}
+traefik_public_domain: "{{ public_domain }}"
+
+# Let's Encrypt staging issues untrusted certificates but has generous rate
+# limits. Switching to production needs acme/acme.json deleted on the NAS so
+# the staging certificate isn't reused.
+traefik_acme_staging: true
+
 # Backend for the host-networked Plex container, routed via the file provider.
 # Mirrors host_port in roles/plex/defaults; role defaults are not shared.
 plex_port: "32400"
