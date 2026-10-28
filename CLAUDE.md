@@ -96,7 +96,6 @@ Most roles follow a standard three-step pattern in `tasks/main.yml`:
 - Bridge network: `docker_network_synology`
 - Docker socket proxy on port 2375 for secure API access
 - Tailscale integration for remote access: `tailscale-router` (on the macvlan at `.168`) advertises only Traefik's IP to the tailnet, so `https://<service>.russellyeo.dev` works away from home
-- Cloudflare tunnels for external access
 
 **Service Communication:**
 - All containers run on shared Docker bridge network
@@ -111,11 +110,10 @@ The main `playbook.yml` runs roles in this order:
 2. `docker-socket-proxy` - Secure Docker API access
 3. `coredns` / `traefik` - DNS and reverse proxy
 4. `homepage` - Dashboard
-5. `cloudflared` - External access tunnel
-6. Download clients: `transmission`, `transmission-openvpn`
-7. Media servers: `plex`
-8. Media management: `sonarr`, `radarr`, `prowlarr`, `bazarr`, `seerr`
-9. Supporting: `flaresolverr`, `adguard-home`, `ntfy`, `n8n`, `changedetection`, `watchtower`
+5. Download clients: `transmission`, `transmission-openvpn`
+6. Media servers: `plex`
+7. Media management: `sonarr`, `radarr`, `prowlarr`, `bazarr`, `seerr`
+8. Supporting: `flaresolverr`, `adguard-home`, `ntfy`, `n8n`, `changedetection`, `watchtower`
 
 ## Development Workflow
 

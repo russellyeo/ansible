@@ -32,7 +32,6 @@ docker_bridge_gateway: "172.18.0.1"
 tailnet_host: "{{ vault_tailnet_host }}"
 
 # Cloudflare
-cloudflare_tunnel_token: "{{ vault_cloudflare_tunnel_token }}"
 # Zone DNS edit for public_domain only; Traefik uses it for the ACME DNS challenge.
 cloudflare_dns_api_token: "{{ vault_cloudflare_dns_api_token }}"
 

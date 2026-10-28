@@ -15,7 +15,6 @@
     - coredns
     - traefik
     - homepage
-    - cloudflared
     - transmission
     - transmission-openvpn
     - plex
