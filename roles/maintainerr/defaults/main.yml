@@ -1,0 +1,29 @@
+---
+host_port: '6246'
+
+# tasks/config.yml talks to Maintainerr's settings API from the NAS.
+maintainerr_api_url: "http://{{ network_localhost }}:{{ host_port }}/api"
+
+# Plex runs with network_mode host, so containers on the bridge reach it
+# through the gateway (as Homepage's Plex widget does).
+maintainerr_plex_settings:
+  media_server_type: plex
+  plex_name: Synology
+  plex_hostname: "{{ docker_bridge_gateway }}"
+  plex_port: 32400
+  plex_ssl: 0
+
+# Container names on the docker network; each is in that service's AllowedHosts.
+maintainerr_seerr_url: "http://seerr:5055"
+
+maintainerr_servarr_servers:
+  - type: sonarr
+    serverName: Sonarr
+    url: "http://sonarr:8989"
+    apiKey: "{{ sonarr_api_key }}"
+  - type: radarr
+    serverName: Radarr
+    url: "http://radarr:7878"
+    apiKey: "{{ radarr_api_key }}"
+
+maintainerr_telemetry_enabled: false

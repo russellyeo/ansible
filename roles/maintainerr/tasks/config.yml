@@ -1,0 +1,159 @@
+# Maintainerr keeps its settings in a SQLite database, set through its API
+# (which has no auth). Each setting is only written when it differs from what
+# the API reports. The API masks secrets, so a changed Plex token or Seerr key
+# isn't noticed once one is set; change those in the UI, or clear them there
+# and rerun.
+#
+# Rules (what gets deleted, and when) are made in the UI.
+---
+- name: Wait for Maintainerr
+  tags:
+    - maintainerr
+    - config
+  check_mode: false
+  uri:
+    url: "{{ maintainerr_api_url }}/health/ready"
+  register: maintainerr_ready
+  until: maintainerr_ready.status == 200
+  retries: 30
+  delay: 5
+
+- name: Get settings
+  tags:
+    - maintainerr
+    - config
+  check_mode: false
+  uri:
+    url: "{{ maintainerr_api_url }}/settings"
+  register: maintainerr_settings
+
+- name: Set Plex token
+  tags:
+    - maintainerr
+    - config
+  uri:
+    url: "{{ maintainerr_api_url }}/settings/plex/token"
+    method: POST
+    body_format: json
+    body:
+      plex_auth_token: "{{ plex_api_key }}"
+    status_code: [200, 201]
+  register: maintainerr_result
+  failed_when: maintainerr_result.status not in [200, 201] or maintainerr_result.json.status | default('OK') == 'NOK'
+  changed_when: true
+  when: not maintainerr_settings.json.plex_auth_token
+  no_log: true
+
+- name: Set Plex server
+  tags:
+    - maintainerr
+    - config
+  uri:
+    url: "{{ maintainerr_api_url }}/settings"
+    method: PATCH
+    body_format: json
+    body: "{{ maintainerr_plex_settings }}"
+  register: maintainerr_result
+  failed_when: maintainerr_result.status != 200 or maintainerr_result.json.status | default('OK') == 'NOK'
+  changed_when: true
+  when: >-
+    maintainerr_settings.json | dict2items
+    | selectattr('key', 'in', maintainerr_plex_settings.keys() | list)
+    | items2dict != maintainerr_plex_settings
+
+- name: Set Seerr
+  tags:
+    - maintainerr
+    - config
+  uri:
+    url: "{{ maintainerr_api_url }}/settings/seerr"
+    method: POST
+    body_format: json
+    body:
+      url: "{{ maintainerr_seerr_url }}"
+      api_key: "{{ seerr_api_key }}"
+    status_code: [200, 201]
+  register: maintainerr_result
+  failed_when: maintainerr_result.status not in [200, 201] or maintainerr_result.json.status | default('OK') == 'NOK'
+  changed_when: true
+  when: >-
+    maintainerr_settings.json.seerr_url != maintainerr_seerr_url
+    or not maintainerr_settings.json.seerr_api_key
+  no_log: true
+
+- name: Set telemetry
+  tags:
+    - maintainerr
+    - config
+  uri:
+    url: "{{ maintainerr_api_url }}/settings/telemetry"
+    method: POST
+    body_format: json
+    body:
+      enabled: "{{ maintainerr_telemetry_enabled }}"
+    status_code: [200, 201]
+  changed_when: true
+  when: maintainerr_settings.json.telemetryEnabled != maintainerr_telemetry_enabled
+
+- name: Get Sonarr and Radarr servers
+  tags:
+    - maintainerr
+    - config
+  check_mode: false
+  uri:
+    url: "{{ maintainerr_api_url }}/settings/{{ item }}"
+  loop:
+    - sonarr
+    - radarr
+  register: maintainerr_servarr_current
+  no_log: true
+
+# One server per type, matched by serverName. Added if missing, updated if its
+# URL or API key differs.
+- name: Set Sonarr and Radarr servers
+  tags:
+    - maintainerr
+    - config
+  vars:
+    current: >-
+      {{ maintainerr_servarr_current.results
+         | selectattr('item', 'eq', item.type) | map(attribute='json') | first
+         | selectattr('serverName', 'eq', item.serverName) | list }}
+  uri:
+    url: "{{ maintainerr_api_url }}/settings/{{ item.type }}{{ ('/' ~ current[0].id) if current else '' }}"
+    method: "{{ 'PUT' if current else 'POST' }}"
+    body_format: json
+    body:
+      serverName: "{{ item.serverName }}"
+      url: "{{ item.url }}"
+      apiKey: "{{ item.apiKey }}"
+    status_code: [200, 201]
+  register: maintainerr_result
+  failed_when: maintainerr_result.status not in [200, 201] or maintainerr_result.json.status | default('OK') == 'NOK'
+  changed_when: true
+  when: not current or current[0].url != item.url or current[0].apiKey != item.apiKey
+  loop: "{{ maintainerr_servarr_servers }}"
+  loop_control:
+    label: "{{ item.serverName }}"
+  no_log: true
+
+- name: Check the required settings are set
+  tags:
+    - maintainerr
+    - config
+  check_mode: false
+  uri:
+    url: "{{ maintainerr_api_url }}/settings/test/setup"
+    return_content: true
+  register: maintainerr_test
+  failed_when: maintainerr_test.content | trim != 'true'
+
+- name: Test Plex connection
+  tags:
+    - maintainerr
+    - config
+  check_mode: false
+  uri:
+    url: "{{ maintainerr_api_url }}/settings/test/plex"
+  register: maintainerr_test
+  failed_when: maintainerr_test.json.status | default('NOK') != 'OK'

@@ -24,6 +24,7 @@
     - prowlarr
     - bazarr
     - seerr
+    - maintainerr
     - calibre-web-automated
     - flaresolverr
     - adguard-home

@@ -1,0 +1,39 @@
+# Maintainerr container
+# GHCR: https://ghcr.io/maintainerr/maintainerr
+# Docs: https://docs.maintainerr.info/installation
+---
+- name: Start container
+  tags:
+    - maintainerr
+    - container
+    - media
+  docker_container:
+    name: maintainerr
+    image: ghcr.io/maintainerr/maintainerr:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    user: "{{ servarr_uid }}:{{ servarr_gid }}"
+    volumes:
+      - "{{ config_directory }}/maintainerr:/opt/data"
+    networks:
+      - name: "{{ docker_network }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    ports:
+      - "{{ host_port }}:6246"
+    env:
+      TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.maintainerr.rule: "Host(`maintainerr.{{ home_domain }}`) || Host(`maintainerr.{{ public_domain }}`)"
+      traefik.http.routers.maintainerr.entrypoints: "web,websecure"
+      traefik.http.services.maintainerr.loadbalancer.server.port: "6246"
+      homepage.group: "Media"
+      homepage.name: "Maintainerr"
+      homepage.icon: "maintainerr.png"
+      homepage.description: "Clear out unwatched media"
+      homepage.href: "https://maintainerr.{{ public_domain }}"
+      homepage.weight: "5"

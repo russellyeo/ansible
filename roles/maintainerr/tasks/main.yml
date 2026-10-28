@@ -1,0 +1,10 @@
+# Maintainerr deletes media nobody watches. Rules gather matching titles into a
+# Plex collection, and after a grace period it removes them from Plex, Sonarr,
+# Radarr and Seerr.
+#
+# Documentation: https://docs.maintainerr.info
+#
+---
+- import_tasks: file.yml
+- import_tasks: container.yml
+- import_tasks: config.yml
