@@ -49,3 +49,6 @@ proved through Cloudflare DNS, so nothing has to be open to the internet.
 - Tailscale admin: approve the `192.168.1.167/32` route, key expiry off for
   `tailscale-router` and `n8n`
 - Router: DHCP `.10`–`.159`, DNS 1 = AdGuard
+- Plex → Settings → Network: Custom server access URLs =
+  `https://plex.russellyeo.dev:443`, so the mobile and TV apps find Plex
+  over the tailnet. Remote Access stays off.
