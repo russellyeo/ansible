@@ -36,12 +36,12 @@ cinemas:
     chain_id: X06SN
     address: Fortis Green Road, London N10 3HP
     map_url: https://www.google.com/maps/search/?api=1&query=Everyman%20Muswell%20Hill%2C%20Fortis%20Green%20Road%2C%20London%20N10%203HP
-  - key: bfi-imax
-    name: BFI IMAX
-    chain: bfi
-    kind: captioned
-    address: 1 Charlie Chaplin Walk, London SE1 8XR
-    map_url: https://www.google.com/maps/search/?api=1&query=BFI%20IMAX%2C%201%20Charlie%20Chaplin%20Walk%2C%20London%20SE1%208XR
+  - key: everyman-kings-cross
+    name: Everyman King's Cross
+    chain: everyman
+    chain_id: X0X5P
+    address: 14-18 Handyside Street, London N1C 4DN
+    map_url: https://www.google.com/maps/search/?api=1&query=Everyman%20King%27s%20Cross%2C%2014-18%20Handyside%20Street%2C%20London%20N1C%204DN
 
 # Weekday screenings count only if they start before or at/after these.
 cinema_free_hours: { weekdayBefore: "09:00", weekdayFrom: "17:00" }
