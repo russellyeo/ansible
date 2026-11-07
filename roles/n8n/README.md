@@ -202,6 +202,40 @@ curl -s -X POST https://www.picturehouses.com/api/scheduled-movies-ajax \
 # to http://localhost:8191/v1, and strip solution.cookies before committing.
 ```
 
+## Health capture workflow
+
+`Health: capture Health Auto Export payload` saves every POST to
+`/webhook/health` as-is to `{{ health_raw_directory }}/capture/<timestamp>.json`
+(mounted at `/home/node/health-raw`). It writes no notes. It exists to record
+real payloads from the Health Auto Export iPhone app, so the notes in the
+private `health` Obsidian vault can be built against the real shape.
+
+- **Auth:** the request must carry the header `X-Health-Secret` with the value
+  of `vault_health_webhook_secret` (the `Health webhook secret` credential).
+  Anything else gets a 403.
+- **Size:** `N8N_PAYLOAD_SIZE_MAX` is 64 MB, because a week of GPS routes is
+  large.
+- **Files:** `N8N_RESTRICT_FILE_ACCESS_TO` limits the Read/Write Files node to
+  `/home/node/health-raw`.
+
+### Health Auto Export settings
+
+In the app, **Automations → new → REST API**:
+
+| Setting | Value |
+|---|---|
+| URL | `https://n8n.<public_domain>/webhook/health` (at home, or away on Tailscale) |
+| Headers | `X-Health-Secret`: the vault value |
+| Data type | Health Metrics and Workouts |
+| Metrics | Sleep Analysis, Resting Heart Rate, Heart Rate Variability, VO2 Max, Step Count, Walking + Running Distance, Active Energy, Apple Exercise Time, Respiratory Rate, Blood Oxygen Saturation, Time in Daylight, Walking Heart Rate Average, Body Mass |
+| Workouts | All, with route data and workout metrics |
+| Export format | JSON |
+| Aggregation | Days |
+| Date range | Last 7 days |
+| Sync cadence | Daily |
+
+The REST API automation needs Health Auto Export Premium.
+
 ## Google setup
 
 Done once, by hand:

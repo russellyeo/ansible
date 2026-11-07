@@ -1,0 +1,41 @@
+{
+  "id": "healthCapture001",
+  "name": "Health: capture Health Auto Export payload",
+  "active": true,
+  "settings": { "executionOrder": "v1", "timezone": "Europe/London" },
+  "nodes": [
+    {
+      "id": "capture-webhook",
+      "name": "Health Auto Export webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "0b7f4d2e-6a1c-4e8b-9f3d-2c5a7e1b4d60",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "health",
+        "authentication": "headerAuth",
+        "responseMode": "lastNode",
+        "options": { "rawBody": true }
+      },
+      "credentials": { "httpHeaderAuth": { "id": "healthWebhook001", "name": "Health webhook secret" } }
+    },
+    {
+      "id": "capture-write",
+      "name": "Save raw payload",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [240, 0],
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/health-raw/capture/{{ $now.toFormat('yyyy-LL-dd-HHmmss') }}.json",
+        "dataPropertyName": "data",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Health Auto Export webhook": { "main": [[{ "node": "Save raw payload", "type": "main", "index": 0 }]] }
+  },
+  "pinData": {}
+}

@@ -18,6 +18,7 @@
       # servarr_uid. (A tmpfs lost its mode on container restart.)
       - "{{ config_directory }}/n8n-cache:/home/node/.cache"
       - "{{ config_directory }}/n8n:/home/node/.n8n"
+      - "{{ health_raw_directory }}:/home/node/health-raw"
     networks:
       - name: "{{ docker_network }}"
     dns_servers:
@@ -41,6 +42,10 @@
       # Served over plain HTTP on the LAN; secure cookies would block login.
       N8N_SECURE_COOKIE: "false"
       N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+      # The only folder the Read/Write Files node may touch.
+      N8N_RESTRICT_FILE_ACCESS_TO: "/home/node/health-raw"
+      # MB. A Health Auto Export payload with a week of GPS routes is large.
+      N8N_PAYLOAD_SIZE_MAX: "64"
     labels:
       traefik.enable: "true"
       traefik.http.routers.n8n.rule: "Host(`n8n.{{ home_domain }}`) || Host(`n8n.{{ public_domain }}`)"

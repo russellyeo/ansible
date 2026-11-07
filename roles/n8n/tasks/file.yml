@@ -48,3 +48,18 @@
     owner: servarr
     group: servarr
     mode: '{{ file_mode }}'
+
+- name: Ensure Health raw payload directories are present
+  tags:
+    - n8n
+    - file
+    - config
+  file:
+    path: '{{ health_raw_directory }}/{{ item }}'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+  loop:
+    - ''
+    - capture

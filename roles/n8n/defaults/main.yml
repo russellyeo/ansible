@@ -46,6 +46,10 @@ cinemas:
 # Weekday screenings count only if they start before or at/after these.
 cinema_free_hours: { weekdayBefore: "09:00", weekdayFrom: "17:00" }
 
+# Raw Health Auto Export payloads, kept outside the Obsidian vault and backed
+# up to Backblaze B2 by a hand-made Hyper Backup task (not set up yet).
+health_raw_directory: "{{ config_directory }}/health-raw"
+
 # Import order matters: the error workflow must exist before the others
 # reference it. `id` matches the template's top-level id; `publish` makes the
 # workflow's triggers live. n8n 2.x only calls a published error workflow.
@@ -56,6 +60,7 @@ n8n_workflows:
   - { name: cinema-collect, id: cinemaCollect001, publish: true }
   - { name: cinema-sync, id: cinemaSync000001, publish: true }
   - { name: cinema-digest, id: cinemaDigest0001, publish: true }
+  - { name: health-capture, id: healthCapture001, publish: true }
 
 # n8n credential IDs (from /home/credentials/<id>), created by hand in the UI.
 # Workflow import is skipped until both are set in group_vars.
