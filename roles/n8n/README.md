@@ -220,21 +220,23 @@ private `health` Obsidian vault can be built against the real shape.
 
 ### Health Auto Export settings
 
-In the app, **Automations → new → REST API**:
+An automation sends one data type, so there are two **REST API**
+automations in the app, both posting to the same webhook. A payload has
+either `data.metrics` or `data.workouts`.
 
-| Setting | Value |
-|---|---|
-| URL | `https://n8n.<public_domain>/webhook/health` (at home, or away on Tailscale) |
-| Headers | `X-Health-Secret`: the vault value |
-| Data type | Health Metrics and Workouts |
-| Metrics | Sleep Analysis, Resting Heart Rate, Heart Rate Variability, VO2 Max, Step Count, Walking + Running Distance, Active Energy, Apple Exercise Time, Respiratory Rate, Blood Oxygen Saturation, Time in Daylight, Walking Heart Rate Average, Body Mass |
-| Workouts | All, with route data and workout metrics |
-| Export format | JSON |
-| Aggregation | Days |
-| Date range | Last 7 days |
-| Sync cadence | Daily |
+| Setting | `n8n metrics` | `n8n workouts` |
+|---|---|---|
+| URL | `https://n8n.<public_domain>/webhook/health` (at home, or away on Tailscale) | same |
+| Headers | `X-Health-Secret`: the vault value | same |
+| Data type | Health Metrics, all selected | Workouts, with route data and workout metrics |
+| Summarize | Days (otherwise every reading is sent) | n/a |
+| Export | JSON, version v2 | JSON, version v2 |
+| Date range | Last 7 days (the 7 full days before today) | Last 7 days |
+| Sync cadence | Daily | Daily |
 
-The REST API automation needs Health Auto Export Premium.
+Sizes seen: about 30 KB for a week of daily metrics, about 4 MB for a week of
+workouts with routes. The REST API automations need Health Auto Export
+Premium.
 
 ## Google setup
 
