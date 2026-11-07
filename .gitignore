@@ -1,2 +1,4 @@
 vars/vault.yml
 .DS_Store
+# Superpowers specs and plans stay local
+docs/superpowers/
