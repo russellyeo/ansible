@@ -12,7 +12,7 @@ const { pathToFileURL } = require('node:url');
 const { load } = require('./load.js');
 
 const { buildCommit } = load(['health.js'], ['buildCommit']);
-const VAULT = process.env.HEALTH_VAULT || path.join(os.homedir(), 'Developer/Obsidian/Health');
+const VAULT = process.env.HEALTH_VAULT || path.join(os.homedir(), 'Developer/Obsidian/apple-health-vault');
 
 async function main(argv) {
   const flag = (name) => {

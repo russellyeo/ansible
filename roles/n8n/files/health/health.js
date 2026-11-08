@@ -3,7 +3,7 @@
 // Shared by the n8n Code nodes (the n8n role pastes this file into them
 // verbatim) and the node:test suite in ./test. Keep it dependency-free plain
 // JS: Code nodes cannot require modules. The note format is the vault's
-// SCHEMA.md (russellyeo/health).
+// SCHEMA.md (russellyeo/apple-health-vault).
 //
 // Error messages name fields and units, never values: the error workflow
 // emails them.

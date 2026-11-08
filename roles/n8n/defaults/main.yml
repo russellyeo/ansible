@@ -47,7 +47,7 @@ cinemas:
 cinema_free_hours: { weekdayBefore: "09:00", weekdayFrom: "17:00" }
 
 # The private Obsidian vault repo the health notes are committed to.
-health_github_repo: russellyeo/health
+health_github_repo: russellyeo/apple-health-vault
 
 # Import order matters: the error workflow must exist before the others
 # reference it. `id` matches the template's top-level id; `publish` makes the

@@ -1,5 +1,6 @@
 // Checks generated notes against the vault's own schema and validator
-// (russellyeo/health, cloned at HEALTH_VAULT or ~/Developer/Obsidian/Health).
+// (russellyeo/apple-health-vault, cloned at HEALTH_VAULT or
+// ~/Developer/Obsidian/apple-health-vault).
 // Skipped when the vault isn't there. Every payload here is made up.
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -11,7 +12,7 @@ const { load } = require('./load.js');
 
 const { buildCommit, dayNote } = load(['health.js'], ['buildCommit', 'dayNote']);
 
-const VAULT = process.env.HEALTH_VAULT || path.join(os.homedir(), 'Developer/Obsidian/Health');
+const VAULT = process.env.HEALTH_VAULT || path.join(os.homedir(), 'Developer/Obsidian/apple-health-vault');
 const haveVault = fs.existsSync(path.join(VAULT, 'schema/v1.json'));
 
 const q = (qty, units) => ({ qty, units });

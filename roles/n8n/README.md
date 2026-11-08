@@ -208,7 +208,7 @@ curl -s -X POST https://www.picturehouses.com/api/scheduled-movies-ajax \
 ## Health workflows
 
 These turn Health Auto Export payloads from the iPhone into notes in the
-private `health` Obsidian vault (`russellyeo/health`). The logic is in
+private Obsidian vault repo `russellyeo/apple-health-vault`. The logic is in
 `files/health/health.js`, with each Code node's own code in
 `files/health/nodes/`. The note format is the vault's `SCHEMA.md`.
 
@@ -262,7 +262,7 @@ Ingest commits with a fine-grained token (the `GitHub health` credential,
 from `vault_health_github_token`). Create it at GitHub → Settings → Developer
 settings → Fine-grained tokens:
 
-- **Repository access:** only `russellyeo/health`
+- **Repository access:** only `russellyeo/apple-health-vault`
 - **Permissions:** Contents, read and write
 - **Expiry:** a year. When it expires, ingest fails and emails; make a new
   one, update the vault and rerun `--tags n8n`.
