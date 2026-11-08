@@ -116,3 +116,7 @@ test('Staleness check flags 3 days without a payload', async () => {
   assert.deepEqual((await stale('2026-11-05T09:15:00.000+00:00'))[0].json, { stale: true, days: 3 });
   assert.deepEqual((await stale('2026-11-05T09:16:00.000+00:00'))[0].json, { stale: false, days: 2 });
 });
+
+test('Save ledger writes nothing for a metrics payload', async () => {
+  assert.deepEqual(await runNode('ledger.js', { nodes: { Build: [{ json: { ledger: null } }] } }), []);
+});

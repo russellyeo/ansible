@@ -66,6 +66,11 @@ function localParts(ts) {
   return { date: m[1], hhmm: `${m[2]}${m[3]}` };
 }
 
+// A quantity worth writing: 0 means "no data" and is never written.
+function present(quantity) {
+  return Boolean(quantity) && typeof quantity.qty === 'number' && quantity.qty > 0;
+}
+
 function round(value, dp) {
   const f = 10 ** dp;
   return Math.round(value * f) / f;
@@ -100,17 +105,17 @@ function workoutNote(w) {
   fields.start = isoTimestamp(w.start);
   if (w.end) fields.end = isoTimestamp(w.end);
   fields.duration_min = round(w.duration / 60, 1);
-  if (w.distance) {
+  if (present(w.distance)) {
     checkUnits('distance_km', w.distance, 'km');
     fields.distance_km = round(w.distance.qty, 2);
   }
-  if (w.elevationUp) {
+  if (present(w.elevationUp)) {
     checkUnits('elevation_m', w.elevationUp, 'm');
     fields.elevation_m = Math.round(w.elevationUp.qty);
   }
-  if (w.avgHeartRate) fields.avg_hr = Math.round(w.avgHeartRate.qty);
-  if (w.maxHeartRate) fields.max_hr = Math.round(w.maxHeartRate.qty);
-  if (w.activeEnergyBurned) fields.energy_kcal = toKcal('energy_kcal', w.activeEnergyBurned);
+  if (present(w.avgHeartRate)) fields.avg_hr = Math.round(w.avgHeartRate.qty);
+  if (present(w.maxHeartRate)) fields.max_hr = Math.round(w.maxHeartRate.qty);
+  if (present(w.activeEnergyBurned)) fields.energy_kcal = toKcal('energy_kcal', w.activeEnergyBurned);
   if (typeof w.isIndoor === 'boolean') fields.indoor = w.isIndoor;
   fields.effort = null;
 
@@ -152,7 +157,7 @@ function dayValues(metrics, date) {
   for (const [field, name, units, dp] of DAY_METRICS) {
     const m = byName[name];
     const entry = m && (m.data || []).find((e) => String(e.date).slice(0, 10) === date);
-    if (!entry || typeof entry.qty !== 'number') continue;
+    if (!present(entry)) continue;
     if (units === 'kcal') {
       values[field] = toKcal(field, { qty: entry.qty, units: m.units });
     } else {
@@ -286,8 +291,9 @@ function plural(n, word) {
   return `${n} ${word}${n === 1 ? '' : 's'}`;
 }
 
-// The files to commit and the ledger to save afterwards. `blobs` holds the
-// text of the paths planReads asked for.
+// The files to commit and the ledger to save afterwards (null for a metrics
+// payload, which mustn't write a ledger it may have read before a workouts
+// run updated it). `blobs` holds the text of the paths planReads asked for.
 function buildCommit({ body, tree, blobs, ledger, today }) {
   const existing = treeBlobs(tree);
   const nextLedger = { workouts: { ...((ledger && ledger.workouts) || {}) } };
@@ -334,7 +340,8 @@ function buildCommit({ body, tree, blobs, ledger, today }) {
       days++;
     }
   }
-  return { files, ledger: nextLedger, message: `Health Auto Export: ${plural(workouts, 'workout')}, ${plural(days, 'day')}` };
+  const isWorkouts = payloadKind(body) === 'workouts';
+  return { files, ledger: isWorkouts ? nextLedger : null, message: `Health Auto Export: ${plural(workouts, 'workout')}, ${plural(days, 'day')}` };
 }
 
 function daysSince(iso, nowIso) {

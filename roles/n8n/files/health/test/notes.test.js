@@ -248,3 +248,11 @@ test('mergeDay returns null when nothing changes', () => {
 test('mergeDay leaves hand-written notes alone', () => {
   assert.equal(mergeDay(existing.replace('source: apple-health', 'source: manual'), { resting_hr: 50 }), null);
 });
+
+test('zero quantities are left out, never written as 0', () => {
+  const note = workoutNote(run({ distance: { qty: 0, units: 'km' }, elevationUp: { qty: 0, units: 'm' }, avgHeartRate: { qty: 0 }, activeEnergyBurned: { qty: 0, units: 'kJ' } }));
+  for (const key of ['distance_km', 'elevation_m', 'avg_hr', 'energy_kcal']) assert.doesNotMatch(note.text, new RegExp(`^${key}:`, 'm'));
+  assert.match(note.text, /\n\nRun · 33\.8 min\n\n## Notes\n$/);
+  const zeroSteps = [metric('step_count', 'count', { '2026-11-05': 0 }), metric('resting_heart_rate', 'count/min', { '2026-11-05': 57 })];
+  assert.deepEqual(dayValues(zeroSteps, '2026-11-05'), { resting_hr: 57 });
+});

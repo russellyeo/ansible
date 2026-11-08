@@ -163,3 +163,8 @@ test('daysSince counts whole days', () => {
   assert.equal(daysSince('2026-11-05T10:00:00Z', '2026-11-08T07:36:00Z'), 2);
   assert.equal(daysSince('2026-11-05T10:00:00Z', '2026-11-08T10:00:00Z'), 3);
 });
+
+test('a metrics payload never touches the ledger', () => {
+  const result = buildCommit({ body: metricsBody({ '2026-11-07': 4000 }), tree: [], blobs: {}, ledger: { workouts: { A: 'x.md' } }, today: TODAY });
+  assert.equal(result.ledger, null);
+});
