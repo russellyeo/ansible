@@ -208,3 +208,135 @@ function mergeDay(text, values) {
   }
   return changed ? `---\n${lines.join('\n')}\n---${match[2] || ''}` : null;
 }
+
+// ---- Payloads, the raw archive and commits ----
+
+// Day notes can take late values for this many days after their date.
+const MERGE_DAYS = 7;
+
+function payloadKind(body) {
+  const data = body && body.data;
+  if (data && Array.isArray(data.workouts)) return 'workouts';
+  if (data && Array.isArray(data.metrics)) return 'metrics';
+  throw new Error('payload has neither data.metrics nor data.workouts');
+}
+
+// Files for the NAS archive, relative to the health-raw directory. Each
+// workout is one file named by its ID, so the 7-day lookback rewrites the
+// same file instead of piling up copies of its route.
+function archiveFiles(body, stamp, receivedIso) {
+  const kind = payloadKind(body);
+  const files = [];
+  if (kind === 'workouts') {
+    for (const w of body.data.workouts) {
+      if (!/^[A-Za-z0-9-]+$/.test(String(w.id))) throw new Error('workout id is not a plain ID');
+      files.push({ path: `workouts/${w.id}.json`, content: JSON.stringify(w) });
+    }
+  } else {
+    files.push({ path: `metrics/${stamp}.json`, content: JSON.stringify(body) });
+  }
+  files.push({ path: 'last-payload.json', content: JSON.stringify({ received: receivedIso, kind }) });
+  return files;
+}
+
+function addDays(date, days) {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+// "workouts/.../X.md", then "X 2.md", "X 3.md", ...
+function suffixed(path, n) {
+  return n === 1 ? path : path.replace(/\.md$/, ` ${n}.md`);
+}
+
+function treeBlobs(tree) {
+  return new Map((tree || []).filter((e) => e.type === 'blob').map((e) => [e.path, e.sha]));
+}
+
+function newWorkouts(body, ledger) {
+  const known = (ledger && ledger.workouts) || {};
+  return body.data.workouts.filter((w) => !(w.id in known));
+}
+
+function recentDayPaths(body, today) {
+  return metricDates(body.data.metrics, today)
+    .filter((date) => date >= addDays(today, -MERGE_DAYS))
+    .map((date) => dayNote(date, {}).path);
+}
+
+// The existing notes buildCommit needs to read: notes at (or suffixed from)
+// the path of each workout not in the ledger, and day notes young enough to
+// take late values.
+function planReads({ body, tree, ledger, today }) {
+  const blobs = treeBlobs(tree);
+  const reads = new Map();
+  if (payloadKind(body) === 'workouts') {
+    for (const w of newWorkouts(body, ledger)) {
+      const base = workoutNote(w).path;
+      for (let n = 1; blobs.has(suffixed(base, n)); n++) reads.set(suffixed(base, n), blobs.get(suffixed(base, n)));
+    }
+  } else {
+    for (const path of recentDayPaths(body, today)) if (blobs.has(path)) reads.set(path, blobs.get(path));
+  }
+  return [...reads].map(([path, sha]) => ({ path, sha }));
+}
+
+function plural(n, word) {
+  return `${n} ${word}${n === 1 ? '' : 's'}`;
+}
+
+// The files to commit and the ledger to save afterwards. `blobs` holds the
+// text of the paths planReads asked for.
+function buildCommit({ body, tree, blobs, ledger, today }) {
+  const existing = treeBlobs(tree);
+  const nextLedger = { workouts: { ...((ledger && ledger.workouts) || {}) } };
+  const files = [];
+  let workouts = 0;
+  let days = 0;
+  const read = (path) => {
+    if (!(path in blobs)) throw new Error(`${path}: exists in the repo but wasn't read`);
+    return blobs[path];
+  };
+
+  if (payloadKind(body) === 'workouts') {
+    const taken = new Set();
+    for (const w of newWorkouts(body, nextLedger)) {
+      const note = workoutNote(w);
+      for (let n = 1; ; n++) {
+        const path = suffixed(note.path, n);
+        if (taken.has(path)) continue;
+        if (existing.has(path)) {
+          if (read(path).split('\n').includes(`source_id: ${w.id}`)) {
+            nextLedger.workouts[w.id] = path;
+            break;
+          }
+          continue;
+        }
+        taken.add(path);
+        files.push({ path, content: note.text });
+        nextLedger.workouts[w.id] = path;
+        workouts++;
+        break;
+      }
+    }
+  } else {
+    const metrics = body.data.metrics;
+    const mergeFrom = addDays(today, -MERGE_DAYS);
+    for (const date of metricDates(metrics, today)) {
+      const values = dayValues(metrics, date);
+      const note = dayNote(date, values);
+      let content = null;
+      if (!existing.has(note.path)) content = note.text;
+      else if (date >= mergeFrom) content = mergeDay(read(note.path), values);
+      if (content === null) continue;
+      files.push({ path: note.path, content });
+      days++;
+    }
+  }
+  return { files, ledger: nextLedger, message: `Health Auto Export: ${plural(workouts, 'workout')}, ${plural(days, 'day')}` };
+}
+
+function daysSince(iso, nowIso) {
+  return Math.floor((Date.parse(nowIso) - Date.parse(iso)) / 86400000);
+}
