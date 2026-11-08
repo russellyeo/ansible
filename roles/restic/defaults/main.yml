@@ -3,12 +3,12 @@
 # limited to that bucket, and its own restic password, all from the vault
 # (mapped in vars/main.yml). Optional per entry: cron, check_cron, keep.
 restic_backups:
-  - name: health
+  - name: apple-health
     source: "{{ health_raw_directory }}"
     repository: "b2:northview-health-raw:health-raw"
-    b2_key_id: "{{ restic_health_b2_key_id }}"
-    b2_key: "{{ restic_health_b2_key }}"
-    password: "{{ restic_health_password }}"
+    b2_key_id: "{{ restic_apple_health_b2_key_id }}"
+    b2_key: "{{ restic_apple_health_b2_key }}"
+    password: "{{ restic_apple_health_password }}"
 
 # Seconds-first cron (go-cron). Back up nightly; check weekly, re-reading a
 # tenth of the data from B2 each time.

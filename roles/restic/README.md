@@ -20,7 +20,7 @@ subscribe to `backups` in the ntfy app.
 
 | Name | Folder | Repository |
 |---|---|---|
-| `health` | `health_raw_directory` (Health Auto Export payloads, written by n8n) | `b2:northview-health-raw:health-raw` |
+| `apple-health` | `health_raw_directory` (Health Auto Export payloads, written by n8n) | `b2:northview-health-raw:health-raw` |
 
 ## Adding a backup
 
@@ -33,7 +33,7 @@ Done by hand, then one entry:
 3. **Vault:** the key's ID and value, and a long random restic password
    (`openssl rand -base64 32`), mapped in `vars/main.yml` as
    `restic_<name>_b2_key_id`, `restic_<name>_b2_key` and
-   `restic_<name>_password`. Use a new password per backup. **Without it the
+   `restic_<name>_password` (with `-` as `_`). Use a new password per backup. **Without it the
    backup can't be read.** The copy in the vault is the recovery key, so keep
    the vault password safe too.
 4. **Entry** in `restic_backups` with `name`, `source`, `repository`
@@ -46,10 +46,10 @@ Done by hand, then one entry:
 On the NAS (`sudo /usr/local/bin/docker ...`):
 
 ```sh
-docker exec restic-health restic snapshots       # list backups
-docker exec restic-health restic stats --mode raw-data
-docker exec restic-health backup                 # back up now
-docker logs restic-health
+docker exec restic-apple-health restic snapshots       # list backups
+docker exec restic-apple-health restic stats --mode raw-data
+docker exec restic-apple-health backup                 # back up now
+docker logs restic-apple-health
 ```
 
 ## Restoring
@@ -57,10 +57,10 @@ docker logs restic-health
 From the NAS, into a new folder (never straight over the live one):
 
 ```sh
-docker exec restic-health restic restore latest --target /root/.cache/restic/restore
+docker exec restic-apple-health restic restore latest --target /root/.cache/restic/restore
 ```
 
-The files land in `{{ config_directory }}/restic/health/restore/`.
+The files land in `{{ config_directory }}/restic/apple-health/restore/`.
 
 If the NAS is gone, restore from the Mac with `brew install restic`, using
 the key and password from the vault:

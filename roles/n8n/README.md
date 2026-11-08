@@ -270,7 +270,7 @@ settings → Fine-grained tokens:
 ### Backup
 
 The raw archive is backed up to Backblaze B2, encrypted, by the `restic`
-role (its `health` backup; see its README).
+role (its `apple-health` backup; see its README).
 
 ### Health Auto Export settings
 
