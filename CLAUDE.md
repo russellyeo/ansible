@@ -116,7 +116,7 @@ The main `playbook.yml` runs roles in this order:
 6. Download clients: `transmission`, `transmission-openvpn`
 7. Media servers: `plex`, `jellyfin`
 8. Media management: `sonarr`, `radarr`, `prowlarr`, `bazarr`, `seerr`, `maintainerr`, `calibre-web-automated`
-9. Supporting: `flaresolverr`, `adguard-home`, `tailscale-router`, `ntfy`, `uptime-kuma`, `beszel`, `n8n`, `restic`, `changedetection`, `watchtower`
+9. Supporting: `flaresolverr`, `adguard-home`, `tailscale-router`, `ntfy`, `uptime-kuma` (removes the container; not in use), `beszel`, `n8n`, `restic`, `changedetection`, `watchtower`
 
 ## Development Workflow
 

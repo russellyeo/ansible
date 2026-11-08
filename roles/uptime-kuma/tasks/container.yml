@@ -7,7 +7,9 @@
   docker_container:
     name: uptime-kuma
     image: louislam/uptime-kuma:2
-    state: "{{ docker_state }}"
+    # Not in use (no monitors were ever set up), so the container is removed.
+    # Its data stays in config/uptime-kuma.
+    state: absent
     restart: "{{ docker_restart }}"
     restart_policy: "{{ docker_restart_policy }}"
     recreate: "{{ docker_recreate }}"
