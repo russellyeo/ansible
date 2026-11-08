@@ -63,3 +63,25 @@
   loop:
     - ''
     - capture
+    - workouts
+    - metrics
+
+# Seeds for the ingest and staleness workflows; never overwritten, since
+# n8n keeps them up to date.
+- name: Ensure health ledger and last-payload marker exist
+  tags:
+    - n8n
+    - file
+    - config
+  copy:
+    dest: '{{ health_raw_directory }}/{{ item.name }}'
+    content: '{{ item.content }}'
+    force: false
+    owner: servarr
+    group: servarr
+    mode: '{{ file_mode }}'
+  loop:
+    - { name: ledger.json, content: '{"workouts": {}}' }
+    - { name: last-payload.json, content: '{{ {"received": now(utc=true).isoformat() ~ "Z", "kind": "none"} | to_json }}' }
+  loop_control:
+    label: '{{ item.name }}'

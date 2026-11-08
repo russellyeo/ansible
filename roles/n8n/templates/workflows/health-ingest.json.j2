@@ -1,0 +1,313 @@
+{%- set lib = lookup('file', 'health/health.js') ~ '\n' -%}
+{%- set gh = 'https://api.github.com/repos/' ~ health_github_repo -%}
+{%- set gh_headers = '{ "parameters": [{ "name": "Accept", "value": "application/vnd.github+json" }, { "name": "X-GitHub-Api-Version", "value": "2022-11-28" }] }' -%}
+{%- set gh_auth = '"authentication": "genericCredentialType", "genericAuthType": "httpBearerAuth", "sendHeaders": true, "headerParameters": ' ~ gh_headers -%}
+{%- set gh_cred = '"credentials": { "httpBearerAuth": { "id": "healthGithub0001", "name": "GitHub health" } }' -%}
+{#
+  Archives each payload, then commits its notes to the vault repo in one
+  commit through the Git Data API. If the branch moved meanwhile, the ref
+  update gets a 422 and the flow goes round again from "Get ref".
+#}
+{
+  "id": "healthIngest0001",
+  "name": "Health: ingest Health Auto Export payload",
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "timezone": "Europe/London",
+    "errorWorkflow": "ccfmError0000001",
+    "saveDataSuccessExecution": "none"
+  },
+  "nodes": [
+    {
+      "id": "ingest-webhook",
+      "name": "Health Auto Export webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "5c557958-44a2-470e-a6a5-148460b6baaa",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "health",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "credentials": { "httpHeaderAuth": { "id": "healthWebhook001", "name": "Health webhook secret" } }
+    },
+    {
+      "id": "ingest-prepare",
+      "name": "Prepare",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0],
+      "parameters": { "jsCode": << (lib ~ lookup('file', 'health/nodes/prepare.js')) | to_json >> }
+    },
+    {
+      "id": "ingest-write-archive",
+      "name": "Write archive",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [440, 0],
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/health-raw/{{ $json.path }}",
+        "dataPropertyName": "data",
+        "options": {}
+      }
+    },
+    {
+      "id": "ingest-read-ledger",
+      "name": "Read ledger",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "executeOnce": true,
+      "position": [660, 0],
+      "parameters": { "fileSelector": "/home/node/health-raw/ledger.json", "options": {} }
+    },
+    {
+      "id": "ingest-extract-ledger",
+      "name": "Extract ledger",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [880, 0],
+      "parameters": { "operation": "fromJson", "binaryPropertyName": "data", "destinationKey": "ledger", "options": {} }
+    },
+    {
+      "id": "ingest-get-ref",
+      "name": "Get ref",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "position": [1100, 0],
+      "parameters": { "url": "<< gh >>/git/ref/heads/main", << gh_auth >>, "options": {} },
+      << gh_cred >>
+    },
+    {
+      "id": "ingest-get-tree",
+      "name": "Get tree",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "position": [1320, 0],
+      "parameters": { "url": "=<< gh >>/git/trees/{{ $json.object.sha }}?recursive=1", << gh_auth >>, "options": {} },
+      << gh_cred >>
+    },
+    {
+      "id": "ingest-plan",
+      "name": "Plan reads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, 0],
+      "parameters": { "jsCode": << (lib ~ lookup('file', 'health/nodes/plan.js')) | to_json >> }
+    },
+    {
+      "id": "ingest-has-reads",
+      "name": "Has reads?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1760, 0],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            { "id": "has-reads", "leftValue": "={{ !$json.none }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ingest-get-blob",
+      "name": "Get blob",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "position": [1980, -160],
+      "parameters": { "url": "=<< gh >>/git/blobs/{{ $json.sha }}", << gh_auth >>, "options": {} },
+      << gh_cred >>
+    },
+    {
+      "id": "ingest-build",
+      "name": "Build",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2200, 0],
+      "parameters": { "jsCode": << (lib ~ lookup('file', 'health/nodes/build.js')) | to_json >> }
+    },
+    {
+      "id": "ingest-needs-commit",
+      "name": "Needs commit?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2420, 0],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            { "id": "needs-commit", "leftValue": "={{ $json.commit }}", "rightValue": "", "operator": { "type": "boolean", "operation": "true", "singleValue": true } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ingest-create-tree",
+      "name": "Create tree",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "position": [2640, -160],
+      "parameters": {
+        "method": "POST",
+        "url": "<< gh >>/git/trees",
+        << gh_auth >>,
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.treeRequest) }}",
+        "options": {}
+      },
+      << gh_cred >>
+    },
+    {
+      "id": "ingest-create-commit",
+      "name": "Create commit",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "position": [2860, -160],
+      "parameters": {
+        "method": "POST",
+        "url": "<< gh >>/git/commits",
+        << gh_auth >>,
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $('Build').first().json.message, tree: $json.sha, parents: [$('Build').first().json.base] }) }}",
+        "options": {}
+      },
+      << gh_cred >>
+    },
+    {
+      "id": "ingest-update-ref",
+      "name": "Update ref",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3080, -160],
+      "parameters": {
+        "method": "PATCH",
+        "url": "<< gh >>/git/refs/heads/main",
+        << gh_auth >>,
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ sha: $json.sha, force: false }) }}",
+        "options": { "response": { "response": { "fullResponse": true, "neverError": true } } }
+      },
+      << gh_cred >>
+    },
+    {
+      "id": "ingest-ref-updated",
+      "name": "Ref updated?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3300, -160],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            { "id": "ref-updated", "leftValue": "={{ $json.statusCode }}", "rightValue": 200, "operator": { "type": "number", "operation": "equals" } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ingest-retry",
+      "name": "Retry guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3520, -320],
+      "parameters": { "jsCode": << (lib ~ lookup('file', 'health/nodes/retry.js')) | to_json >> }
+    },
+    {
+      "id": "ingest-wait",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [3740, -320],
+      "webhookId": "9d3c1a52-7b0e-4f6a-8c21-5e4b7a9d0f13",
+      "parameters": { "amount": 10, "unit": "seconds" }
+    },
+    {
+      "id": "ingest-save-ledger",
+      "name": "Save ledger",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3520, 160],
+      "parameters": { "jsCode": << (lib ~ lookup('file', 'health/nodes/ledger.js')) | to_json >> }
+    },
+    {
+      "id": "ingest-write-ledger",
+      "name": "Write ledger",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [3740, 160],
+      "parameters": {
+        "operation": "write",
+        "fileName": "/home/node/health-raw/ledger.json",
+        "dataPropertyName": "data",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Health Auto Export webhook": { "main": [[{ "node": "Prepare", "type": "main", "index": 0 }]] },
+    "Prepare": { "main": [[{ "node": "Write archive", "type": "main", "index": 0 }]] },
+    "Write archive": { "main": [[{ "node": "Read ledger", "type": "main", "index": 0 }]] },
+    "Read ledger": { "main": [[{ "node": "Extract ledger", "type": "main", "index": 0 }]] },
+    "Extract ledger": { "main": [[{ "node": "Get ref", "type": "main", "index": 0 }]] },
+    "Get ref": { "main": [[{ "node": "Get tree", "type": "main", "index": 0 }]] },
+    "Get tree": { "main": [[{ "node": "Plan reads", "type": "main", "index": 0 }]] },
+    "Plan reads": { "main": [[{ "node": "Has reads?", "type": "main", "index": 0 }]] },
+    "Has reads?": {
+      "main": [
+        [{ "node": "Get blob", "type": "main", "index": 0 }],
+        [{ "node": "Build", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get blob": { "main": [[{ "node": "Build", "type": "main", "index": 0 }]] },
+    "Build": { "main": [[{ "node": "Needs commit?", "type": "main", "index": 0 }]] },
+    "Needs commit?": {
+      "main": [
+        [{ "node": "Create tree", "type": "main", "index": 0 }],
+        [{ "node": "Save ledger", "type": "main", "index": 0 }]
+      ]
+    },
+    "Create tree": { "main": [[{ "node": "Create commit", "type": "main", "index": 0 }]] },
+    "Create commit": { "main": [[{ "node": "Update ref", "type": "main", "index": 0 }]] },
+    "Update ref": { "main": [[{ "node": "Ref updated?", "type": "main", "index": 0 }]] },
+    "Ref updated?": {
+      "main": [
+        [{ "node": "Save ledger", "type": "main", "index": 0 }],
+        [{ "node": "Retry guard", "type": "main", "index": 0 }]
+      ]
+    },
+    "Retry guard": { "main": [[{ "node": "Wait", "type": "main", "index": 0 }]] },
+    "Wait": { "main": [[{ "node": "Get ref", "type": "main", "index": 0 }]] }
+  },
+  "pinData": {}
+}

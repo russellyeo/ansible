@@ -1,11 +1,13 @@
 # n8n
 
-Workflow automation. It runs two sets of workflows:
+Workflow automation. It runs three sets of workflows:
 
 - **CCFM**: keeps a calendar of where the Ally Pally farmers' market is each
   Sunday, and sends a Saturday reminder.
 - **Cinema**: keeps a calendar of subtitled cinema screenings, and sends a
   Friday digest.
+- **Health**: turns Health Auto Export payloads from the iPhone into notes in
+  a private Obsidian vault.
 
 ## URLs
 
@@ -40,7 +42,8 @@ start (`TS_AUTH_ONCE`). After that, the node identity lives in
 Every workflow lives in this repo:
 
 - The workflow itself is a template in `templates/workflows/*.json.j2`.
-- Its code is in `files/ccfm/` or `files/cinema/`, pasted into the Code nodes.
+- Its code is in `files/ccfm/`, `files/cinema/` or `files/health/`, pasted
+  into the Code nodes.
 
 Ansible renders the templates and imports and publishes any that changed. The
 templates use `<< >>` delimiters, so n8n's own `{{ }}` expressions are left
@@ -202,21 +205,81 @@ curl -s -X POST https://www.picturehouses.com/api/scheduled-movies-ajax \
 # to http://localhost:8191/v1, and strip solution.cookies before committing.
 ```
 
-## Health capture workflow
+## Health workflows
 
-`Health: capture Health Auto Export payload` saves every POST to
-`/webhook/health` as-is to `{{ health_raw_directory }}/capture/<timestamp>.json`
-(mounted at `/home/node/health-raw`). It writes no notes. It exists to record
-real payloads from the Health Auto Export iPhone app, so the notes in the
-private `health` Obsidian vault can be built against the real shape.
+These turn Health Auto Export payloads from the iPhone into notes in the
+private `health` Obsidian vault (`russellyeo/health`). The logic is in
+`files/health/health.js`, with each Code node's own code in
+`files/health/nodes/`. The note format is the vault's `SCHEMA.md`.
+
+| Workflow | Runs | Does |
+|---|---|---|
+| `Health: ingest Health Auto Export payload` | On every POST to `/webhook/health` | Archives the payload on the NAS, then commits new workout notes and new or updated day notes to the vault in one commit |
+| `Health: alert when payloads stop` | Daily 10:00 | Emails when no payload has arrived for 3 days (the trial ended, or an automation stopped) |
 
 - **Auth:** the request must carry the header `X-Health-Secret` with the value
   of `vault_health_webhook_secret` (the `Health webhook secret` credential).
   Anything else gets a 403.
 - **Size:** `N8N_PAYLOAD_SIZE_MAX` is 64 MB, because a week of GPS routes is
-  large.
-- **Files:** `N8N_RESTRICT_FILE_ACCESS_TO` limits the Read/Write Files node to
-  `/home/node/health-raw`.
+  large. Successful runs aren't saved in n8n's history; failed ones are.
+- **Files:** `N8N_RESTRICT_FILE_ACCESS_TO` limits the Read/Write Files nodes
+  to `/home/node/health-raw`.
+- **Failures** email through `CCFM: email on failure`. Error messages name
+  fields and paths, never health values.
+
+### What ingest writes
+
+- **Workout notes are create-only.** A workout whose ID is in the ledger is
+  never written again, even if you rename or delete its note. Another workout
+  in the same minute gets ` 2` on its filename.
+- **Day notes** are created for dates before today. For 7 days after the
+  date, new values for the sync's own fields are merged in. The body, and any
+  field it doesn't own, are left alone, and hand-written day notes
+  (`source: manual`) aren't touched.
+- **One commit per payload**, through the GitHub Git Data API. If the branch
+  moved meanwhile (you pushed, or the other automation committed first), the
+  ref update fails and the workflow tries again from the top after 10
+  seconds, up to 5 times.
+
+### The raw archive
+
+`{{ health_raw_directory }}` (mounted at `/home/node/health-raw`) holds:
+
+| Path | What |
+|---|---|
+| `workouts/<id>.json` | Each workout once, with its route, rewritten by each payload that includes it |
+| `metrics/<time>.json` | Every metrics payload |
+| `ledger.json` | The IDs of workouts already written, with their note paths. Delete an ID to let its note be written again. |
+| `last-payload.json` | When the last payload arrived, for the staleness check |
+| `capture/` | Payloads captured before ingest existed |
+
+The ledger and marker are seeded by Ansible and never overwritten.
+
+### GitHub token
+
+Ingest commits with a fine-grained token (the `GitHub health` credential,
+from `vault_health_github_token`). Create it at GitHub → Settings → Developer
+settings → Fine-grained tokens:
+
+- **Repository access:** only `russellyeo/health`
+- **Permissions:** Contents, read and write
+- **Expiry:** a year. When it expires, ingest fails and emails; make a new
+  one, update the vault and rerun `--tags n8n`.
+
+### Backblaze B2 backup
+
+The raw archive is backed up off-site by a Hyper Backup task, set up by hand
+in DSM:
+
+1. **Hyper Backup → Create → Data backup task → Backblaze B2.** Use an
+   application key limited to one bucket.
+2. **Folders:** `homes/servarr/config/health-raw` only.
+3. **Schedule:** daily.
+4. **Client-side encryption: on.** The payloads include GPS routes, so
+   Backblaze should only ever hold encrypted data. Keep the encryption
+   password and the `.pem` key file in a password manager, not on the NAS:
+   without them the backup can't be restored.
+5. **Rotation:** keep about 10 versions.
 
 ### Health Auto Export settings
 
