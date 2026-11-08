@@ -6,6 +6,9 @@ servarr_gid: "65538"
 
 # Filepaths
 config_directory: "/volume3/homes/servarr/config"
+# Raw Health Auto Export payloads: written by n8n, backed up to B2 by the
+# restic role. Kept outside the Obsidian vault.
+health_raw_directory: "{{ config_directory }}/health-raw"
 data_directory: "/volume3/servarr"
 
 # Docker

@@ -1,0 +1,14 @@
+---
+- name: Ensure cache directories are present
+  tags:
+    - restic
+    - file
+  file:
+    path: '{{ config_directory }}/restic/{{ item.name }}'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
+  loop: '{{ restic_backups }}'
+  loop_control:
+    label: '{{ item.name }}'

@@ -1,0 +1,23 @@
+---
+# One entry per backup. Each needs its own B2 bucket, an application key
+# limited to that bucket, and its own restic password, all from the vault
+# (mapped in vars/main.yml). Optional per entry: cron, check_cron, keep.
+restic_backups:
+  - name: health
+    source: "{{ health_raw_directory }}"
+    repository: "b2:northview-health-raw:health-raw"
+    b2_key_id: "{{ restic_health_b2_key_id }}"
+    b2_key: "{{ restic_health_b2_key }}"
+    password: "{{ restic_health_password }}"
+
+# Seconds-first cron (go-cron). Back up nightly; check weekly, re-reading a
+# tenth of the data from B2 each time.
+restic_cron: "0 30 3 * * *"
+restic_check_cron: "0 0 5 * * 0"
+restic_keep: "--keep-daily 10"
+
+# Snapshots are grouped by host, so it's fixed rather than the container's.
+restic_host: northview
+
+# Failures post here; subscribe to the topic in the ntfy app.
+restic_ntfy_url: "http://ntfy:8080/backups"

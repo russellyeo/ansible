@@ -243,7 +243,8 @@ private `health` Obsidian vault (`russellyeo/health`). The logic is in
 
 ### The raw archive
 
-`{{ health_raw_directory }}` (mounted at `/home/node/health-raw`) holds:
+`health_raw_directory` (set in `group_vars/synology.yml`, mounted at
+`/home/node/health-raw`) holds:
 
 | Path | What |
 |---|---|
@@ -266,20 +267,10 @@ settings → Fine-grained tokens:
 - **Expiry:** a year. When it expires, ingest fails and emails; make a new
   one, update the vault and rerun `--tags n8n`.
 
-### Backblaze B2 backup
+### Backup
 
-The raw archive is backed up off-site by a Hyper Backup task, set up by hand
-in DSM:
-
-1. **Hyper Backup → Create → Data backup task → Backblaze B2.** Use an
-   application key limited to one bucket.
-2. **Folders:** `homes/servarr/config/health-raw` only.
-3. **Schedule:** daily.
-4. **Client-side encryption: on.** The payloads include GPS routes, so
-   Backblaze should only ever hold encrypted data. Keep the encryption
-   password and the `.pem` key file in a password manager, not on the NAS:
-   without them the backup can't be restored.
-5. **Rotation:** keep about 10 versions.
+The raw archive is backed up to Backblaze B2, encrypted, by the `restic`
+role (its `health` backup; see its README).
 
 ### Health Auto Export settings
 

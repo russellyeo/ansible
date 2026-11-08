@@ -33,5 +33,6 @@
     - uptime-kuma
     - beszel
     - n8n
+    - restic
     - changedetection
     - watchtower

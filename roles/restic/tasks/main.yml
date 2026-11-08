@@ -1,0 +1,9 @@
+# Backs up NAS folders to Backblaze B2 with restic, encrypted before they
+# leave the NAS. Each entry in restic_backups gets a resticker container that
+# backs up on a schedule and a second one that checks the repository.
+#
+# Documentation: https://github.com/djmaze/resticker
+#
+---
+- import_tasks: file.yml
+- import_tasks: container.yml

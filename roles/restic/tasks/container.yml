@@ -1,0 +1,56 @@
+---
+# Two containers per backup: restic-<name> backs up, restic-<name>-check
+# checks. resticker allows one cron job per container.
+- name: Start containers
+  tags:
+    - restic
+    - container
+  # The env carries the B2 key and the restic password.
+  no_log: true
+  docker_container:
+    name: "restic-{{ item.0.name }}{{ '-check' if item.1 == 'check' else '' }}"
+    image: mazzolino/restic:1.8
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    hostname: "{{ restic_host }}"
+    volumes:
+      - "{{ item.0.source }}:/data/{{ item.0.name }}:ro"
+      - "{{ config_directory }}/restic/{{ item.0.name }}:/root/.cache/restic"
+    networks:
+      - name: "{{ docker_network }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    env: "{{ common | combine(check if item.1 == 'check' else backup) }}"
+    labels:
+      traefik.enable: "false"
+  vars:
+    common:
+      TZ: "{{ timezone }}"
+      RESTIC_REPOSITORY: "{{ item.0.repository }}"
+      RESTIC_PASSWORD: "{{ item.0.password }}"
+      B2_ACCOUNT_ID: "{{ item.0.b2_key_id }}"
+      B2_ACCOUNT_KEY: "{{ item.0.b2_key }}"
+    # Vars are evaluated per loop item, so they can use item.0.
+    backup:
+      BACKUP_CRON: "{{ item.0.cron | default(restic_cron) }}"
+      RESTIC_BACKUP_SOURCES: "/data/{{ item.0.name }}"
+      RESTIC_BACKUP_ARGS: "--host {{ restic_host }}"
+      RESTIC_FORGET_ARGS: "--prune --host {{ restic_host }} --group-by host {{ item.0.keep | default(restic_keep) }}"
+      POST_COMMANDS_FAILURE: >-
+        curl -s -H "Title: Backup failed: {{ item.0.name }}"
+        -d "restic couldn't back up {{ item.0.name }}. See: docker logs restic-{{ item.0.name }}"
+        {{ restic_ntfy_url }}
+    check:
+      CHECK_CRON: "{{ item.0.check_cron | default(restic_check_cron) }}"
+      RESTIC_CHECK_ARGS: "--read-data-subset 10%"
+      SKIP_INIT: "true"
+      POST_COMMANDS_FAILURE: >-
+        curl -s -H "Title: Backup check failed: {{ item.0.name }}"
+        -d "restic check found a problem with the {{ item.0.name }} repository. See: docker logs restic-{{ item.0.name }}-check"
+        {{ restic_ntfy_url }}
+  loop: "{{ restic_backups | product(['backup', 'check']) | list }}"
+  loop_control:
+    label: "{{ item.0.name }} {{ item.1 }}"
