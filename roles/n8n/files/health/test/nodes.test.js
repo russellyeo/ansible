@@ -120,3 +120,20 @@ test('Staleness check flags 3 days without a payload', async () => {
 test('Save ledger writes nothing for a metrics payload', async () => {
   assert.deepEqual(await runNode('ledger.js', { nodes: { Build: [{ json: { ledger: null } }] } }), []);
 });
+
+// The templates aren't JSON until Ansible renders them, but node names and
+// connection keys are plain text.
+for (const [file, terminal] of [['health-ingest.json.j2', ['Write ledger']], ['health-stale.json.j2', ['Email']]]) {
+  test(`${file}: every node but the last feeds another`, () => {
+    const text = fs.readFileSync(path.join(ROOT, '../../templates/workflows', file), 'utf8');
+    const [nodesPart, connectionsPart] = text.split('"connections"');
+    const names = [...nodesPart.matchAll(/^ {6}"name": "([^"]+)"/gm)].map((m) => m[1]);
+    const sources = new Set([...connectionsPart.matchAll(/^ {4}"([^"]+)": \{/gm)].map((m) => m[1]));
+    const targets = new Set([...connectionsPart.matchAll(/"node": "([^"]+)"/g)].map((m) => m[1]));
+    assert.ok(names.length > 3);
+    for (const name of names) {
+      if (!terminal.includes(name)) assert.ok(sources.has(name), `${name} has no outgoing connection`);
+      if (name !== names[0]) assert.ok(targets.has(name), `nothing connects to ${name}`);
+    }
+  });
+}
