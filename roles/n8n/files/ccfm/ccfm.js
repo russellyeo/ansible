@@ -289,7 +289,6 @@ function buildReminder({ sunday, events }) {
     return market ? market.location : null;
   };
   const thisWeek = locationOn(sunday);
-  const lastWeek = locationOn(addDays(sunday, -7));
   const when = formatDay(sunday);
 
   if (!thisWeek) {
@@ -305,9 +304,7 @@ function buildReminder({ sunday, events }) {
   const name = locName(thisWeek);
   const address = LOCATIONS[thisWeek].address;
   const map = mapLink(thisWeek);
-  const moved = lastWeek !== null && lastWeek !== thisWeek;
   const lines = [`${when}, 10:00–15:00`, name, address, `Map: ${map}`];
-  if (moved) lines.push('', `Note: last week it was at ${locName(lastWeek)}.`);
   lines.push('', `Schedule: ${CCFM_URL}`);
 
   const items = [
@@ -316,7 +313,6 @@ function buildReminder({ sunday, events }) {
     ['Address', escapeHtml(address)],
     ['Map', `<a href="${escapeHtml(map)}">Open in Google Maps</a>`],
   ];
-  if (moved) items.push(['📍 Moved', escapeHtml(`last week it was at ${locName(lastWeek)}`)]);
   items.push(['Schedule', `<a href="${escapeHtml(CCFM_URL)}">Full schedule</a>`]);
   const html = [
     `<h2>${escapeHtml(NAME)}</h2>`,
@@ -325,7 +321,7 @@ function buildReminder({ sunday, events }) {
   ].join('\n');
 
   return {
-    subject: `${moved ? '📍 Moved! ' : ''}${NAME}: ${when} at ${name}`,
+    subject: `${NAME}: ${when} at ${name}`,
     text: lines.join('\n'),
     html,
     photo: thisWeek,

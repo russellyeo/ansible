@@ -39,19 +39,14 @@ test('reminder for an unchanged location', () => {
   assert.doesNotMatch(r.html, /Moved/);
 });
 
-test('reminder flags a move from last week', () => {
+test('reminder names only this week\'s location when it changed', () => {
   const r = buildReminder({
     sunday: '2026-10-18',
     events: [ev('a', '2026-10-11', 'park'), ev('b', '2026-10-18', 'campsbourne')],
   });
-  assert.ok(r.subject.startsWith('📍 Moved! '));
-  assert.match(r.text, /last week it was at Alexandra Palace Park/);
-  assert.match(r.html, /<li><b>📍 Moved:<\/b> last week it was at Alexandra Palace Park<\/li>/);
-});
-
-test('reminder does not claim a move when last week is unknown', () => {
-  const r = buildReminder({ sunday: '2026-10-18', events: [ev('b', '2026-10-18', 'campsbourne')] });
-  assert.ok(!r.subject.includes('Moved'));
+  assert.equal(r.subject, "Ally Pally Farmers' Market: Sunday 18 October at Campsbourne School");
+  assert.doesNotMatch(r.text, /last week|Alexandra Palace Park/);
+  assert.doesNotMatch(r.html, /Moved|Alexandra Palace Park/);
 });
 
 test('reminder says nothing is listed when there is no event', () => {
