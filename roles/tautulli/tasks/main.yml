@@ -1,0 +1,8 @@
+# Tautulli monitors Plex: who's watching what, play history, and statistics.
+#
+# Documentation: https://github.com/Tautulli/Tautulli/wiki
+#
+---
+- import_tasks: file.yml
+- import_tasks: container.yml
+- import_tasks: config.yml

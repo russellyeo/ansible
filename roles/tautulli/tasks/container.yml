@@ -1,0 +1,40 @@
+# Tautulli container
+# GHCR: https://ghcr.io/tautulli/tautulli
+# Docs: https://github.com/Tautulli/Tautulli/wiki/Installation#docker
+---
+- name: Start container
+  tags:
+    - tautulli
+    - container
+    - media
+  docker_container:
+    name: tautulli
+    image: ghcr.io/tautulli/tautulli:latest
+    state: "{{ docker_state }}"
+    restart: "{{ docker_restart }}"
+    restart_policy: "{{ docker_restart_policy }}"
+    recreate: "{{ docker_recreate }}"
+    volumes:
+      - "{{ config_directory }}/tautulli:/config"
+    networks:
+      - name: "{{ docker_network }}"
+    dns_servers:
+      - "{{ dns_primary }}"
+      - "{{ dns_secondary }}"
+    ports:
+      - "{{ host_port }}:8181"
+    env:
+      PUID: "{{ servarr_uid }}"
+      PGID: "{{ servarr_gid }}"
+      TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.tautulli.rule: "Host(`tautulli.{{ home_domain }}`) || Host(`tautulli.{{ public_domain }}`)"
+      traefik.http.routers.tautulli.entrypoints: "web,websecure"
+      traefik.http.services.tautulli.loadbalancer.server.port: "8181"
+      homepage.group: "Media"
+      homepage.name: "Tautulli"
+      homepage.icon: "tautulli.png"
+      homepage.description: "Plex activity and stats"
+      homepage.href: "https://tautulli.{{ public_domain }}"
+      homepage.weight: "6"

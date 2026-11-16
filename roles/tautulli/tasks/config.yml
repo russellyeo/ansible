@@ -1,0 +1,77 @@
+# Tautulli owns config.ini and writes its in-memory settings back to it when
+# it shuts down, so an edit made while it runs is lost on the next restart.
+# The settings in tautulli_config_settings are checked first; only if one
+# differs is Tautulli stopped, the file edited, and Tautulli started again.
+---
+- name: Wait for Tautulli to create config.ini
+  tags:
+    - tautulli
+    - config
+  wait_for:
+    path: "{{ config_directory }}/tautulli/config.ini"
+    timeout: 120
+
+# Plex runs on the host network, so the NAS reaches it on localhost.
+# /identity needs no token.
+- name: Get Plex server identifier
+  tags:
+    - tautulli
+    - config
+  check_mode: false
+  uri:
+    url: "http://127.0.0.1:32400/identity"
+    headers:
+      Accept: application/json
+  register: tautulli_plex_identity
+
+- name: Set Plex server identifier fact
+  tags:
+    - tautulli
+    - config
+  set_fact:
+    tautulli_pms_identifier: "{{ tautulli_plex_identity.json.MediaContainer.machineIdentifier }}"
+
+- name: Check config.ini settings
+  tags:
+    - tautulli
+    - config
+  check_mode: true
+  ini_file:
+    path: "{{ config_directory }}/tautulli/config.ini"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  loop: "{{ tautulli_config_settings }}"
+  loop_control:
+    label: "{{ item.section }}.{{ item.option }}"
+  register: tautulli_config_check
+  no_log: true
+
+- name: Apply config.ini settings
+  tags:
+    - tautulli
+    - config
+  when: tautulli_config_check is changed
+  block:
+    - name: Stop Tautulli
+      docker_container:
+        name: tautulli
+        state: stopped
+
+    - name: Set config.ini settings
+      ini_file:
+        path: "{{ config_directory }}/tautulli/config.ini"
+        section: "{{ item.section }}"
+        option: "{{ item.option }}"
+        value: "{{ item.value }}"
+        owner: servarr
+        group: servarr
+      loop: "{{ tautulli_config_settings }}"
+      loop_control:
+        label: "{{ item.section }}.{{ item.option }}"
+      no_log: true
+
+    - name: Start Tautulli
+      docker_container:
+        name: tautulli
+        state: started

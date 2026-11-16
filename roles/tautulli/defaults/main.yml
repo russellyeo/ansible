@@ -1,0 +1,20 @@
+---
+host_port: '8181'
+
+# Settings written into config.ini (tasks/config.yml). Only these keys are
+# touched; Tautulli owns the rest of the file.
+#
+# Plex runs with network_mode host, so containers on the bridge reach it
+# through the gateway (as Homepage's Plex widget does). pms_url_manual stops
+# Tautulli replacing pms_url with a connection it picks from plex.tv.
+# first_run_complete skips the setup wizard.
+tautulli_config_settings:
+  - { section: PMS, option: pms_ip, value: "{{ docker_bridge_gateway }}" }
+  - { section: PMS, option: pms_port, value: "32400" }
+  - { section: PMS, option: pms_ssl, value: "0" }
+  - { section: PMS, option: pms_is_remote, value: "0" }
+  - { section: PMS, option: pms_url_manual, value: "1" }
+  - { section: PMS, option: pms_url, value: "http://{{ docker_bridge_gateway }}:32400" }
+  - { section: PMS, option: pms_token, value: "{{ plex_api_key }}" }
+  - { section: PMS, option: pms_identifier, value: "{{ tautulli_pms_identifier }}" }
+  - { section: General, option: first_run_complete, value: "1" }

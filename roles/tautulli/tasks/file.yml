@@ -1,0 +1,12 @@
+---
+- name: Ensure config directory is present
+  tags:
+    - tautulli
+    - file
+    - config
+  file:
+    path: '{{ config_directory }}/tautulli'
+    state: directory
+    owner: servarr
+    group: servarr
+    mode: '{{ directory_mode }}'
