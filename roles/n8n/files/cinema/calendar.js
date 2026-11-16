@@ -39,6 +39,8 @@ function eventBody(screening, film, cinema) {
     description: eventDescription(screening, film, cinema),
     start: { dateTime: `${screening.start}:00`, timeZone: 'Europe/London' },
     end: { dateTime: `${end}:00`, timeZone: 'Europe/London' },
+    // No notifications: the calendar's default reminders are switched off.
+    reminders: { useDefault: false, overrides: [] },
     extendedProperties: {
       private: { cinemaManaged: 'true', cinemaKey: screening.cinemaKey, cinemaSourceId: String(screening.sourceId) },
     },
@@ -55,8 +57,15 @@ function localStart(event) {
   return ((event.start && event.start.dateTime) || '').slice(0, 16);
 }
 
+// Google leaves out an empty overrides list when it lists events.
+function hasNoReminders(event) {
+  const r = event.reminders || {};
+  return r.useDefault === false && !(r.overrides || []).length;
+}
+
 function isStale(event, body) {
   return (
+    !hasNoReminders(event) ||
     event.summary !== body.summary ||
     event.location !== body.location ||
     event.description !== body.description ||
@@ -66,8 +75,9 @@ function isStale(event, body) {
 }
 
 // wanted: [{screening, film, cinema}]; readCinemaKeys: cinemas whose listing
-// had any screenings at all (any kind, any time).
-function planSync({ wanted, events, okCinemaKeys, readCinemaKeys = [], now }) {
+// had any screenings at all (any kind, any time); cinemaKeys: the configured
+// cinemas. Upcoming events of a cinema no longer configured are all removed.
+function planSync({ wanted, events, okCinemaKeys, readCinemaKeys = [], cinemaKeys = null, now }) {
   // Extra copies of a screening (from a retried insert) are always deleted,
   // past ones included; the first copy is the one kept.
   const ours = new Map();
@@ -97,8 +107,13 @@ function planSync({ wanted, events, okCinemaKeys, readCinemaKeys = [], now }) {
     else if (isStale(existing.event, eventBody(w.screening, w.film, w.cinema))) update.push({ eventId: existing.event.id, wanted: w });
   }
 
+  const retired = [];
   const vanished = new Map();
   for (const [id, { event, cinemaKey }] of ours) {
+    if (cinemaKeys && !cinemaKeys.includes(cinemaKey)) {
+      retired.push({ eventId: event.id, cinemaKey });
+      continue;
+    }
     if (seen.has(id) || !okCinemaKeys.includes(cinemaKey)) continue;
     if (!vanished.has(cinemaKey)) vanished.set(cinemaKey, []);
     vanished.get(cinemaKey).push({ eventId: event.id, cinemaKey, summary: event.summary, start: localStart(event) });
@@ -109,7 +124,7 @@ function planSync({ wanted, events, okCinemaKeys, readCinemaKeys = [], now }) {
   // whose listing still has other screenings loses its last event normally.
   const ourCount = new Map();
   for (const { cinemaKey } of ours.values()) ourCount.set(cinemaKey, (ourCount.get(cinemaKey) || 0) + 1);
-  const remove = [];
+  const remove = [...retired];
   const capped = [];
   const held = [];
   for (const [cinemaKey, list] of vanished) {

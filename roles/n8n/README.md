@@ -162,6 +162,11 @@ entry decides where they go:
   the digest says its reader may need checking.
 - **Duplicate events.** Extra copies of a screening (same `cinemaKey` and
   `cinemaSourceId`) are deleted.
+- **A cinema is removed from `cinemas`.** All its upcoming events are deleted
+  on the next sync, whatever the count. Past events stay.
+
+Synced events have no reminders (`useDefault: false`, no overrides). If an
+event has any reminders, the sync updates it to remove them.
 
 ### Why some nodes look odd
 

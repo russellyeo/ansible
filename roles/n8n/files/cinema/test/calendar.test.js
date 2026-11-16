@@ -35,6 +35,7 @@ test('event body', () => {
   assert.deepEqual(body.start, { dateTime: '2026-10-25T23:30:00', timeZone: 'Europe/London' });
   assert.deepEqual(body.end, { dateTime: '2026-10-26T01:24:00', timeZone: 'Europe/London' });
   assert.deepEqual(body.extendedProperties.private, { cinemaManaged: 'true', cinemaKey: 'everyman-muswell-hill', cinemaSourceId: 'em1' });
+  assert.deepEqual(body.reminders, { useDefault: false, overrides: [] });
   assert.equal(
     body.description,
     '<a href="https://book.example/em1"><b>🎟 Book tickets</b></a> · <a href="https://www.youtube.com/watch?v=k">▶ Trailer</a> · <a href="https://maps.example/mh">📍 Map</a>' +
@@ -68,6 +69,30 @@ test('creates, updates and keeps', () => {
   assert.deepEqual(plan.create.map((w) => w.screening.sourceId), ['p3']);
   assert.deepEqual(plan.update.map((u) => [u.eventId, u.wanted.screening.sourceId]), [['e2', 'p2']]);
   assert.deepEqual(plan.remove, []);
+  assert.deepEqual(plan.capped, []);
+});
+
+test('updates events that still have reminders', () => {
+  const s = screening('ph-crouch-end', 'p1', '2026-10-22T20:00');
+  // Google lists an event with no reminders as { useDefault: false }.
+  const quiet = { ...ev('e1', s), reminders: { useDefault: false } };
+  const noisy = { ...ev('e2', { ...s, sourceId: 'p2' }), reminders: { useDefault: true } };
+  const popup = { ...ev('e3', { ...s, sourceId: 'p3' }), reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 30 }] } };
+  const wanted = [want(s), want({ ...s, sourceId: 'p2' }), want({ ...s, sourceId: 'p3' })];
+  const plan = planSync({ wanted, events: [quiet, noisy, popup], okCinemaKeys: ['ph-crouch-end'], now: NOW });
+  assert.deepEqual(plan.update.map((u) => u.eventId), ['e2', 'e3']);
+});
+
+test('removes all upcoming events of a cinema no longer configured, past the cap', () => {
+  const old = { key: 'bfi-imax', name: 'BFI IMAX', address: '1 Charlie Chaplin Walk', map_url: null };
+  const oldEv = (n, start) => {
+    const body = eventBody(screening('bfi-imax', `b${n}`, start), FILM, old);
+    return { id: `b${n}`, ...body, start: { dateTime: `${body.start.dateTime}+01:00` }, end: { dateTime: `${body.end.dateTime}+01:00` } };
+  };
+  const events = [1, 2, 3, 4, 5].map((n) => oldEv(n, `2026-10-2${n}T20:00`));
+  events.push(oldEv(0, '2026-10-17T20:00'));
+  const plan = planSync({ wanted: [], events, okCinemaKeys: ['ph-crouch-end'], cinemaKeys: Object.keys(CINEMAS), now: NOW });
+  assert.deepEqual(plan.remove.map((r) => r.eventId), ['b1', 'b2', 'b3', 'b4', 'b5']);
   assert.deepEqual(plan.capped, []);
 });
 

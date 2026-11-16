@@ -8,7 +8,7 @@ const wanted = screenings
 const now = $now.setZone('Europe/London').toFormat("yyyy-MM-dd'T'HH:mm");
 const events = $('List events').first().json.items || [];
 const readCinemaKeys = [...new Set(screenings.map((s) => s.cinemaKey))];
-const plan = planSync({ wanted, events, okCinemaKeys, readCinemaKeys, now });
+const plan = planSync({ wanted, events, okCinemaKeys, readCinemaKeys, cinemaKeys: [...cinemas.keys()], now });
 const executionUrl = `${N8N_URL}/workflow/${$workflow.id}/executions/${$execution.id}`;
 const alert = errors.length || plan.capped.length ? buildAlert({ errors, capped: plan.capped, held: plan.held, cinemas: CINEMAS, executionUrl }) : null;
 return [
